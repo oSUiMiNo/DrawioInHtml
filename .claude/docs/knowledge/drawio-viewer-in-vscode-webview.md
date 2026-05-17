@@ -107,3 +107,53 @@ viewerHost.style.height = '70vh';  // インライン必須（"" や CSSのheigh
 `style.height = '100vh'` をインライン設定して `updateContainerHeight` を抑止する
 ハイブリッド構成を採用している。`preview.js` の `zoomBtn` のクリックハンドラと
 ESC ハンドラで height のインライン値を切替＋再描画している。
+
+---
+
+## VSIX パッケージング：node_modules を `.vscodeignore` で全除外しない
+
+### 症状
+VSCode Marketplace 経由でインストールした拡張が
+`Activating extension 'X' failed: Cannot find module 'Y'` でクラッシュする。
+スタックトレースは本拡張の dependency（例：`node-html-parser`）が、その
+推移的依存（例：`he`、`css-select`、`entities`）を `require` した位置を指す。
+
+### 原因
+`.vscodeignore` に下記のような記述を入れていた：
+```
+node_modules/**
+!node_modules/node-html-parser/**
+```
+これは「本パッケージだけは入れて他の node_modules は全除外」のつもりだが、
+**推移的依存（dependency の dependency）まで除外**してしまう。結果、
+パッケージ本体は同梱されたが、それが必要とする `he` 等が同梱されず、
+ロード時にクラッシュする。
+
+### 正しい対処
+`vsce` は**デフォルトで `npm list --production` を実行して本番依存を自動解析し、
+それに該当する node_modules だけを同梱**する。なので：
+- `.vscodeignore` から `node_modules/**` の除外は**削除する**
+- `!node_modules/...` のような逆指定も不要
+- devDependencies（`@types/*`、`typescript` 等）は `vsce` が自動で除外する
+
+### 同梱物確認の習慣
+publish 前に必ず：
+```
+npx --yes @vscode/vsce ls --tree | grep node_modules
+```
+で同梱される node_modules 配下のディレクトリ一覧を確認する。
+本拡張の場合、最低限以下が含まれているべき：
+- `node-html-parser/`
+- `he/`（HTML エンティティ処理）
+- `css-select/`（CSS セレクタ）
+- `entities/`（HTML エンティティ）
+- `nth-check/`（CSS :nth-child）
+- `domutils/` `domelementtype/` `domhandler/`（DOM 抽象）
+- `boolbase/`（CSS セレクタ補助）
+
+### 教訓
+- VSIX の `.vscodeignore` 設計時は「除外」より「自動同梱に任せる」を基本にする
+- F5 の Extension Development Host は workspace の node_modules を直接参照するので
+  **この種のバグはマーケットプレイス経由インストール時にしか再現しない**。
+  開発時に問題なくても publish 後に発覚するパターンに注意。
+- 初回 publish 後は必ず**実機 VSCode へインストールして動作確認**を取る習慣にする
