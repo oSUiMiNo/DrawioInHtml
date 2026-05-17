@@ -230,6 +230,56 @@ npm run compile
 
 <h2>アーキテクチャ概略</h2>
 
+<div class="callout">
+  <strong>このセクションは本拡張のショーケースを兼ねています</strong>
+  下の図は <code>&lt;script type="application/drawio+xml"&gt;</code> として README.html に直接埋め込まれています。本拡張で開いている方は、テキストフロー図の下に Drawio 図が描画されているはずです。
+</div>
+
+<script type="application/drawio+xml" data-diagram-id="architecture">
+<mxfile host="embed.diagrams.net">
+  <diagram id="readme-architecture" name="アーキテクチャ">
+    <mxGraphModel dx="900" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Drawio in HTML — 内部アーキテクチャ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="20" width="340" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="preview" value="プレビュータブ&#10;Custom Text Editor&#10;&#10;・HTML本文をそのまま表示&#10;・&lt;script type=&quot;application/drawio+xml&quot;&gt; を&#10;  インラインで Drawio 図に描画&#10;・「✏️編集」「🔍拡大」ボタン" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="280" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="editor" value="編集タブ&#10;WebviewPanel (ViewColumn.Beside)&#10;&#10;・embed.diagrams.net iframe&#10;・Drawio 公式エディタで編集&#10;・保存→XMLを拡張ホストへ送信" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="280" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="host" value="拡張ホスト (Node.js)&#10;&#10;・editorProvider.ts: プレビュー WebView 生成&#10;・previewHtmlBuilder.ts: HTML加工&#10;  (CSP注入・slot置換・相対URL変換)&#10;・editorPanelManager.ts: 編集タブ管理&#10;・htmlPatcher.ts: 保存往復の XML 差し替え" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="460" y="160" width="340" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="htmlfile" value="HTML ファイル&#10;(単一ファイル完結)&#10;&#10;&lt;script type=&quot;application/drawio+xml&quot;&#10;        data-diagram-id=&quot;X&quot;&gt;&#10;  ...mxGraphModel XML...&#10;&lt;/script&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF9B2;strokeColor=#000000;align=left;verticalAlign=top;fontSize=11;spacingTop=8;spacingLeft=10;size=14;" vertex="1" parent="1">
+          <mxGeometry x="560" y="380" width="320" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge1" value="postMessage&#10;(openEditor 等)" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.3;align=center;" edge="1" parent="1" source="preview" target="host">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge2" value="postMessage&#10;(save XML)" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.7;align=center;" edge="1" parent="1" source="editor" target="host">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge3" value="WorkspaceEdit&#10;doc.save()" style="endArrow=classic;startArrow=none;html=1;rounded=0;fontSize=10;exitX=0.5;exitY=1;entryX=0.5;entryY=0;align=center;" edge="1" parent="1" source="host" target="htmlfile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+</script>
+
 <div class="flow">[VSCode]
  ├─ プレビュータブ（CustomTextEditor）           ← HTML本文+Drawioインライン表示
  │   └─ Webview "preview"
