@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Drawio in HTML — README</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #222;
+    --muted: #666;
+    --accent: #1e6fff;
+    --accent-bg: #eaf2ff;
+    --warn-bg: #fff8e1;
+    --warn-border: #f1c40f;
+    --ok-bg: #e8f6ee;
+    --ok-border: #2ecc71;
+    --code-bg: #f1f3f5;
+    --border: #ddd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.75;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+  h1 {
+    font-size: 1.9em;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 8px;
+    margin-top: 0;
+  }
+  h2 {
+    font-size: 1.4em;
+    margin-top: 2.4em;
+    padding: 8px 12px;
+    background: var(--accent-bg);
+    border-left: 5px solid var(--accent);
+  }
+  h3 {
+    font-size: 1.1em;
+    margin-top: 1.6em;
+    color: var(--accent);
+  }
+  p { margin: 0.6em 0; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    font-family: Consolas, "Courier New", monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 14px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.88em;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+  }
+  .callout {
+    border-left: 5px solid var(--ok-border);
+    background: var(--ok-bg);
+    padding: 12px 16px;
+    margin: 1em 0;
+    border-radius: 4px;
+  }
+  .callout.warn {
+    border-color: var(--warn-border);
+    background: var(--warn-bg);
+  }
+  .callout strong { display: block; margin-bottom: 4px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    background: white;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--accent-bg); }
+  ul, ol { padding-left: 1.6em; }
+  li { margin: 0.3em 0; }
+  .flow {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-family: Consolas, monospace;
+    font-size: 0.9em;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  kbd {
+    background: #e8eaed;
+    border: 1px solid #c3c8cd;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: Consolas, monospace;
+    font-size: 0.88em;
+  }
+  footer {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+
+<h1>Drawio in HTML</h1>
+
+<p>
+  単一のHTMLファイル内に埋め込んだ Drawio 図を、VSCode 上で<strong>静的SVGとして閲覧</strong>し、必要な時だけ<strong>別タブで Drawio エディタを開いて編集</strong>できる拡張機能。
+  保存先は同じHTMLファイルで、<strong>単一HTML完結を維持</strong>します。
+</p>
+
+<h2>何ができる？</h2>
+
+<ul>
+  <li>HTMLの中に <code>&lt;script type="application/drawio+xml" data-diagram-id="..."&gt;XML&lt;/script&gt;</code> の形で Drawio 図を埋め込み</li>
+  <li>VSCode で対象 HTML を右クリック → <strong>Open With → Drawio HTML Editor</strong> で開くと、各図が SVG として静的に並ぶ</li>
+  <li>マウスホバーで右上にオーバーレイ表示される<strong>「🔍 拡大」「✏️ 編集」</strong>ボタン
+    <ul>
+      <li><strong>拡大</strong>：画面全体に展開（<kbd>ESC</kbd> または「✕ 縮小」で戻る）</li>
+      <li><strong>編集</strong>：右側に編集タブが開き、Drawio 公式エディタで編集できる</li>
+    </ul>
+  </li>
+  <li>Drawio エディタで保存（💾）すると、元のHTMLの該当 <code>&lt;script&gt;</code> の中身だけが書き換わり、<strong>HTMLファイルもディスクに自動保存</strong>される</li>
+  <li>1つのHTMLに複数の Drawio 図を埋め込み可。それぞれ独立して編集できる</li>
+</ul>
+
+<h2>必要環境</h2>
+
+<ul>
+  <li>VSCode 1.85.0 以降</li>
+  <li><strong>編集時のみ</strong>インターネット接続必須（<code>embed.diagrams.net</code> から Drawio エディタを読み込む）</li>
+  <li>閲覧（プレビュー）はオフラインで動作（Drawio ビューアーは拡張に同梱）</li>
+</ul>
+
+<h2>インストール</h2>
+
+<h3>方法A: VSIX を使う（本リポジトリの場合）</h3>
+
+<pre><code>git clone &lt;このリポジトリ&gt;
+cd DrawioInHtml
+npm install           # postinstallでviewer-static.min.js(3.6MB)が自動取得される
+npm run compile
+npx --yes @vscode/vsce package
+code --install-extension drawio-in-html-0.1.0.vsix
+</code></pre>
+
+<h3>方法B: 開発時（F5 で Extension Development Host 起動）</h3>
+
+<pre><code>npm install
+npm run compile
+# その後VSCodeでこのフォルダを開いて F5
+</code></pre>
+
+<h2>HTMLへの埋め込み方</h2>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+&lt;h1&gt;システム構成図&lt;/h1&gt;
+
+&lt;script type="application/drawio+xml" data-diagram-id="architecture"&gt;
+&lt;mxGraphModel dx="800" dy="600" grid="1" gridSize="10"&gt;
+  &lt;root&gt;
+    &lt;mxCell id="0" /&gt;
+    &lt;mxCell id="1" parent="0" /&gt;
+    &lt;mxCell id="2" value="API" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"&gt;
+      &lt;mxGeometry x="40" y="40" width="120" height="60" as="geometry"/&gt;
+    &lt;/mxCell&gt;
+  &lt;/root&gt;
+&lt;/mxGraphModel&gt;
+&lt;/script&gt;
+
+&lt;h2&gt;もう1つの図&lt;/h2&gt;
+&lt;script type="application/drawio+xml" data-diagram-id="flow"&gt;
+&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<div class="callout warn">
+  <strong>重要な決まり</strong>
+  <ul>
+    <li>必ず <code>type="application/drawio+xml"</code> を指定（これがないと拡張は無視する）</li>
+    <li>必ず <code>data-diagram-id="一意な名前"</code> を付ける（同一HTML内で重複不可、欠落していると赤帯警告）</li>
+    <li>中身は <code>&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;</code> の生のXML、または <code>&lt;mxfile&gt;&lt;diagram&gt;&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;&lt;/diagram&gt;&lt;/mxfile&gt;</code> どちらでもOK</li>
+    <li>一度Drawio側で編集して保存すると <code>&lt;mxfile&gt;</code> 形式に統一される</li>
+  </ul>
+</div>
+
+<h2>操作</h2>
+
+<table>
+  <thead>
+    <tr><th>動作</th><th>操作</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>HTMLをプレビュー表示</td><td>エクスプローラで右クリック → Open With → Drawio HTML Editor</td></tr>
+    <tr><td>図を拡大表示</td><td>カードにホバー → 「🔍 拡大」</td></tr>
+    <tr><td>拡大解除</td><td><kbd>ESC</kbd> または「✕ 縮小」</td></tr>
+    <tr><td>図を編集</td><td>カードにホバー → 「✏️ 編集」</td></tr>
+    <tr><td>編集結果を保存</td><td>Drawio画面左上の保存ボタン（💾）← HTMLにも自動保存される</td></tr>
+    <tr><td>通常のHTML編集に戻す</td><td>タブを閉じて、HTMLファイルを通常の Open（ダブルクリック）で開き直す</td></tr>
+  </tbody>
+</table>
+
+<h2>アーキテクチャ概略</h2>
+
+<div class="flow">[VSCode]
+ ├─ プレビュータブ（CustomTextEditor）       ← 閲覧専用・静的SVG表示
+ │   └─ Webview "preview"
+ │        ├─ viewer-static.min.js 同梱読み込み
+ │        ├─ 各&lt;script&gt;のXMLを &lt;div class="mxgraph"&gt; に変換しSVG描画
+ │        └─ ホバー時に「拡大」「編集」ボタンを overlay 表示
+ │              └─ クリック → 拡張本体へ postMessage
+ │
+ └─ 編集タブ（WebviewPanel, ViewColumn.Beside）← 1図1タブ
+     └─ Webview "editor"
+          └─ embed.diagrams.net iframe で Drawio 公式エディタ
+                └─ 保存時に postMessage で XML を拡張本体へ送る
+                      └─ 拡張本体 (htmlPatcher) が &lt;script&gt; の中身を書き換え
+                            └─ doc.save() でディスクへ自動保存</div>
+
+<h2>ファイル構成</h2>
+
+<table>
+  <thead>
+    <tr><th>パス</th><th>役割</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>src/extension.ts</code></td><td>拡張のエントリポイント</td></tr>
+    <tr><td><code>src/editorProvider.ts</code></td><td>プレビュー用 CustomTextEditorProvider</td></tr>
+    <tr><td><code>src/editorPanelManager.ts</code></td><td>編集タブのライフサイクル管理</td></tr>
+    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の <code>&lt;script&gt;</code> 抽出・置換の純粋関数</td></tr>
+    <tr><td><code>media/preview.js</code> / <code>preview.css</code></td><td>プレビュー側WebView（SVG描画、ホバー、拡大）</td></tr>
+    <tr><td><code>media/editor.js</code> / <code>editor.css</code></td><td>編集タブ側WebView（Drawioエディタとブリッジ）</td></tr>
+    <tr><td><code>media/viewer-static.min.js</code></td><td>Drawio公式ビューアー（postinstallで自動取得）</td></tr>
+    <tr><td><code>scripts/fetch-viewer.js</code></td><td>viewer-static.min.js を取得するスクリプト</td></tr>
+    <tr><td><code>sample/demo.html</code></td><td>動作確認用サンプル</td></tr>
+  </tbody>
+</table>
+
+<h2>トラブルシューティング</h2>
+
+<h3>Drawio 図が真っ白になる</h3>
+<ul>
+  <li>viewer-static.min.js が読み込まれていない可能性。<code>npm install</code> を再実行して <code>media/viewer-static.min.js</code> の存在を確認</li>
+  <li>Output panel → "Drawio HTML" にエラーが出ていないか確認</li>
+</ul>
+
+<h3>「Open With」に Drawio HTML Editor が出てこない</h3>
+<ul>
+  <li>通常のHTML扱いのまま開かれている可能性。<kbd>Ctrl+Shift+P</kbd> → <code>Reopen Editor With...</code> でも切替可能</li>
+  <li>拡張機能がインストールされていない／無効化されているか確認</li>
+</ul>
+
+<h3>編集タブの Drawio が表示されない</h3>
+<ul>
+  <li>ネット接続を確認（編集タブは <code>embed.diagrams.net</code> をオンライン読み込み）</li>
+  <li>企業プロキシ環境ではブロックされる可能性あり</li>
+</ul>
+
+<h3>編集後にHTML側が dirty マークになるが内容は反映されている</h3>
+<ul>
+  <li>自動保存が走っているはずだが、まれに失敗時はOutput panelに警告が出る</li>
+  <li>手動で <kbd>Ctrl+S</kbd> を押せば確実に永続化</li>
+</ul>
+
+<h2>制約</h2>
+
+<ul>
+  <li>対象は <code>data-diagram-id</code> 属性を持つ <code>&lt;script type="application/drawio+xml"&gt;</code> のみ</li>
+  <li>1つのHTML内で <code>data-diagram-id</code> は一意であること</li>
+  <li>編集機能はネット必須（Drawio エディタ本体は本家オンライン版を利用）</li>
+</ul>
+
+<h2>ライセンス・クレジット</h2>
+
+<ul>
+  <li>内部で利用している <code>viewer-static.min.js</code> は <a href="https://github.com/jgraph/drawio">drawio (jgraph/drawio)</a> のもの</li>
+  <li>編集機能は <a href="https://embed.diagrams.net/">embed.diagrams.net</a> を iframe で利用</li>
+</ul>
+
+<footer>
+  Drawio in HTML — VSCode 拡張機能
+</footer>
+
+</body>
+</html>
