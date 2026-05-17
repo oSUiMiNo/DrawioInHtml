@@ -4,17 +4,18 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-source-blue?logo=github)](https://github.com/oSUiMiNo/DrawioInHtml)
 
-単一のHTMLファイル内に埋め込んだ Drawio 図を、VSCode 上で**静的SVGとして閲覧**し、必要な時だけ**別タブで Drawio エディタを開いて編集**できる拡張機能。**保存先は同じHTMLファイル**で、単一HTML完結を維持。
+VSCode で HTML ファイルを開くと、**HTML本文をそのままプレビュー表示**しつつ、HTML内に埋め込まれた `<script type="application/drawio+xml">` を**元の位置にインラインで Drawio 図として描画**する拡張機能。必要な時だけ別タブで Drawio エディタを開いて編集でき、**保存先は同じHTMLファイル**で単一HTML完結を維持。
 
 ## 何ができる？
 
-- HTMLの中に `<script type="application/drawio+xml" data-diagram-id="...">XML</script>` の形で Drawio 図を埋め込み
-- VSCode で対象 HTML を右クリック → **Open With → Drawio HTML Editor** で開くと、各図が SVG として静的に並ぶ
-- マウスホバーで右上にオーバーレイ表示される **「🔍 拡大」「✏️ 編集」** ボタン
+- VSCode で対象 HTML を右クリック → **Open With → Drawio HTML Editor** で開くと、**HTML本文（見出し、段落、表、画像、リンク）が普通にプレビュー表示**される
+- HTMLの中に `<script type="application/drawio+xml" data-diagram-id="...">XML</script>` を入れておくと、**その位置にインラインで Drawio 図が SVG として描画**される
+- 図にマウスホバーで右上にオーバーレイ表示される **「🔍 拡大」「✏️ 編集」** ボタン
   - **拡大**：画面全体に展開（ESC または ✕縮小で戻る）
   - **編集**：右側に編集タブが開き、Drawio 公式エディタで編集できる
 - Drawio エディタで保存（💾）すると、元のHTMLの該当 `<script>` の中身だけが書き換わり、**HTMLファイルもディスクに自動保存**される
 - 1つのHTMLに複数の Drawio 図を埋め込み可。それぞれ独立して編集できる
+- 相対パス画像 `<img src="./img.png">` も同フォルダなら表示可能
 
 ## 必要環境
 
@@ -142,9 +143,11 @@ npm run compile
 
 ## 制約
 
-- 対象は `data-diagram-id` 属性を持つ `<script type="application/drawio+xml">` のみ
+- 編集対象は `data-diagram-id` 属性を持つ `<script type="application/drawio+xml">` のみ
 - 1つのHTML内で `data-diagram-id` は一意であること
 - 編集機能はネット必須（Drawio エディタ本体は本家オンライン版を利用）
+- ユーザHTML内のインライン `<script>...</script>` と外部 `<script src>` は **CSP の制約で実行されない**
+- ユーザHTML内の外部 `<link rel="stylesheet">` も同様に読み込めない（`<style>...</style>` で内側に書いてください）
 
 ## ライセンス・クレジット
 

@@ -1,42 +1,35 @@
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: var(--vscode-editor-background, #1e1e1e);
-  color: var(--vscode-foreground, #ccc);
-  font-family: var(--vscode-font-family, sans-serif);
+/* 警告バナー（拡張機能が検出した制約事項を本文先頭に表示） */
+#__drawio-in-html-warnings {
+  background: #fff8e1;
+  color: #5d4037;
+  border-left: 4px solid #f1c40f;
+  padding: 8px 14px;
+  margin: 0 0 12px 0;
+  font-family: sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#__drawio-in-html-warnings > div {
+  margin: 2px 0;
 }
 
-body.has-fullscreen {
+/* fullscreen 中は背景スクロールを止める */
+body.drawio-has-fullscreen {
   overflow: hidden;
 }
 
-#warnings {
-  background: #b94a48;
-  color: white;
-  padding: 8px 12px;
-  display: none;
-}
-
-#warnings.show { display: block; }
-
-#diagrams {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  box-sizing: border-box;
-}
-
-.diagram-card {
+/* Drawio 描画スロット */
+.drawio-slot {
   position: relative;
-  border: 1px solid var(--vscode-panel-border, #444);
+  border: 1px solid rgba(127, 127, 127, 0.3);
   border-radius: 6px;
   background: white;
   overflow: auto;
+  margin: 12px 0;
+  box-sizing: border-box;
 }
 
-.diagram-card .viewer-host {
+.drawio-slot .drawio-slot-host {
   padding: 4px;
   min-height: 80px;
   display: flex;
@@ -45,11 +38,11 @@ body.has-fullscreen {
   box-sizing: border-box;
 }
 
-.diagram-card .viewer-host .mxgraph {
+.drawio-slot .drawio-slot-host .mxgraph {
   margin: 0;
 }
 
-.diagram-card .empty {
+.drawio-slot .drawio-empty {
   color: #999;
   padding: 24px;
   text-align: center;
@@ -57,8 +50,8 @@ body.has-fullscreen {
   background: white;
 }
 
-/* オーバーレイ：通常時は非表示、カード hover かつ fullscreen で表示 */
-.diagram-card .overlay {
+/* オーバーレイ：通常時非表示、hover or fullscreen で表示 */
+.drawio-slot .drawio-overlay {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -75,23 +68,24 @@ body.has-fullscreen {
   font-size: 12px;
   z-index: 10;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  font-family: sans-serif;
 }
 
-.diagram-card:hover .overlay,
-.diagram-card.fullscreen .overlay {
+.drawio-slot:hover .drawio-overlay,
+.drawio-slot.drawio-fullscreen .drawio-overlay {
   opacity: 1;
   pointer-events: auto;
 }
 
-.diagram-card .overlay .title {
+.drawio-slot .drawio-overlay-title {
   font-weight: 600;
   opacity: 0.85;
   margin-right: 4px;
 }
 
-.diagram-card .overlay .overlay-button {
-  background: var(--vscode-button-background, #0e639c);
-  color: var(--vscode-button-foreground, #fff);
+.drawio-slot .drawio-overlay-button {
+  background: #0e639c;
+  color: #fff;
   border: none;
   padding: 4px 10px;
   font-size: 12px;
@@ -100,12 +94,12 @@ body.has-fullscreen {
   font-family: inherit;
 }
 
-.diagram-card .overlay .overlay-button:hover {
-  background: var(--vscode-button-hoverBackground, #1177bb);
+.drawio-slot .drawio-overlay-button:hover {
+  background: #1177bb;
 }
 
-/* 拡大時は画面全面 */
-.diagram-card.fullscreen {
+/* 拡大時は画面全体に */
+.drawio-slot.drawio-fullscreen {
   position: fixed;
   top: 0;
   left: 0;
@@ -115,12 +109,12 @@ body.has-fullscreen {
   border-radius: 0;
   border: none;
   margin: 0;
+  background: white;
 }
 
-.diagram-card.fullscreen .viewer-host {
+.drawio-slot.drawio-fullscreen .drawio-slot-host {
   min-height: 100vh;
   height: 100vh;
   box-sizing: border-box;
   padding: 0;
-  /* display:flex / align-items / justify-content は通常時から継承される */
 }

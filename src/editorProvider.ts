@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { extractDrawioBlocks } from './htmlPatcher';
 import { EditorPanelManager } from './editorPanelManager';
+import { buildPreviewHtml } from './previewHtmlBuilder';
 
 type PreviewToHostMsg =
   | { type: 'ready' }
@@ -45,11 +46,30 @@ export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
+    const documentDir = vscode.Uri.joinPath(document.uri, '..');
     webviewPanel.webview.options = {
       enableScripts: true,
-      localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')],
+      localResourceRoots: [
+        vscode.Uri.joinPath(this.context.extensionUri, 'media'),
+        documentDir,
+      ],
     };
-    webviewPanel.webview.html = this.buildWebviewHtml(webviewPanel.webview);
+
+    // 現在の diagramId の集合（順序保持）
+    let lastDiagramIds: string[] = [];
+
+    const rebuildHtml = (): string => {
+      const result = buildPreviewHtml({
+        rawHtml: document.getText(),
+        documentUri: document.uri,
+        extensionUri: this.context.extensionUri,
+        webview: webviewPanel.webview,
+      });
+      lastDiagramIds = result.diagramIds;
+      return result.html;
+    };
+
+    webviewPanel.webview.html = rebuildHtml();
 
     const sendBlocks = (): void => {
       const blocks = extractDrawioBlocks(document.getText());
@@ -62,11 +82,30 @@ export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider
       webviewPanel.webview.postMessage(msg);
     };
 
+    // ドキュメント変更検知
+    // - diagramId 集合が変わった場合のみ webview.html を再構築（高コスト、debounce 300ms）
+    // - 変わっていなければ XML 差分だけ postMessage で送る（cheap）
+    let rebuildTimer: NodeJS.Timeout | undefined;
     const changeSub = vscode.workspace.onDidChangeTextDocument((e) => {
       if (e.document.uri.toString() !== document.uri.toString()) {
         return;
       }
-      sendBlocks();
+      const blocks = extractDrawioBlocks(e.document.getText());
+      const currentIds = blocks.filter((b) => b.diagramId).map((b) => b.diagramId);
+      const idsChanged =
+        currentIds.length !== lastDiagramIds.length ||
+        currentIds.some((id, i) => id !== lastDiagramIds[i]);
+
+      if (idsChanged) {
+        // slot 構造が変わった → HTML 再構築
+        if (rebuildTimer) clearTimeout(rebuildTimer);
+        rebuildTimer = setTimeout(() => {
+          webviewPanel.webview.html = rebuildHtml();
+        }, 300);
+      } else {
+        // XML 差分だけ
+        sendBlocks();
+      }
     });
 
     const msgSub = webviewPanel.webview.onDidReceiveMessage(async (raw: PreviewToHostMsg) => {
@@ -91,51 +130,7 @@ export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider
     webviewPanel.onDidDispose(() => {
       changeSub.dispose();
       msgSub.dispose();
+      if (rebuildTimer) clearTimeout(rebuildTimer);
     });
   }
-
-  private buildWebviewHtml(webview: vscode.Webview): string {
-    const nonce = generateNonce();
-    const mediaRoot = vscode.Uri.joinPath(this.context.extensionUri, 'media');
-    const previewJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, 'preview.js'));
-    const previewCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, 'preview.css'));
-    const viewerJs = webview.asWebviewUri(
-      vscode.Uri.joinPath(mediaRoot, 'viewer-static.min.js')
-    );
-    const csp = [
-      `default-src 'none'`,
-      `img-src ${webview.cspSource} https: data: blob:`,
-      `style-src ${webview.cspSource} 'unsafe-inline'`,
-      `font-src ${webview.cspSource} data: blob:`,
-      `script-src ${webview.cspSource} 'unsafe-eval' 'nonce-${nonce}'`,
-      `connect-src ${webview.cspSource} blob: data: https:`,
-      `worker-src ${webview.cspSource} blob:`,
-      `child-src blob:`,
-    ].join('; ');
-
-    return /* html */ `<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="${csp}">
-<title>Drawio HTML Preview</title>
-<link rel="stylesheet" href="${previewCss}">
-</head>
-<body>
-<div id="warnings"></div>
-<div id="diagrams"></div>
-<script nonce="${nonce}" src="${viewerJs}"></script>
-<script nonce="${nonce}" src="${previewJs}"></script>
-</body>
-</html>`;
-  }
-}
-
-function generateNonce(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let s = '';
-  for (let i = 0; i < 32; i++) {
-    s += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return s;
 }

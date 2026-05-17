@@ -2,7 +2,7 @@
   "name": "drawio-in-html",
   "displayName": "Drawio in HTML",
   "description": "HTMLファイルに埋め込んだ Drawio 図を VSCode 上で静的 SVG として閲覧し、別タブで編集して同じ HTML に自動保存できる拡張機能",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "publisher": "Maku",
   "license": "MIT",
   "icon": "media/icon.png",
