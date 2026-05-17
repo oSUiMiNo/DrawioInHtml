@@ -157,3 +157,62 @@ npx --yes @vscode/vsce ls --tree | grep node_modules
   **この種のバグはマーケットプレイス経由インストール時にしか再現しない**。
   開発時に問題なくても publish 後に発覚するパターンに注意。
 - 初回 publish 後は必ず**実機 VSCode へインストールして動作確認**を取る習慣にする
+
+---
+
+## HTML本文プレビュー方式（v0.2.0〜）のハマりどころ
+
+### 設計の前提
+v0.2.0 以降、本拡張は「ユーザHTMLをそのまま WebView に書き込み、必要なものだけ注入する」方式を採用している。
+固定テンプレートに切り出した部品を並べる方式（v0.1.x）ではなく、ユーザHTMLの本文（`<head>`/`<body>`）を保ったまま、内部の `<script type="application/drawio+xml">` だけを `<div class="drawio-slot">` に置換する。
+
+### 必須の注入要素（`src/previewHtmlBuilder.ts` で実施）
+| 注入箇所 | 内容 | 理由 |
+|---------|------|------|
+| `<head>` 先頭 | `<meta http-equiv="Content-Security-Policy" content="...">` | WebView の CSP は厳密。ユーザ既存 CSP は削除＆強制上書き |
+| `<head>` 末尾 | `<link rel="stylesheet" href="webviewUri(preview.css)">` | スロット周りの装飾 |
+| `<body>` 末尾 | `<script nonce src="webviewUri(viewer-static.min.js)">` | Drawio 描画ライブラリ |
+| `<body>` 末尾 | `<script nonce src="webviewUri(preview.js)">` | slot 検出と viewer 起動 |
+
+### 相対URL変換（必須）
+ユーザHTML内の `<img src="./X">`、`<link href="./X">`、`<a href="./X">`、`<script src="./X">` 等の**相対パスは WebView origin から解決できない**ため、必ず `webview.asWebviewUri()` で変換する。
+
+判定ロジック：
+- 絶対URL（`http://`, `https://`, `data:`, `mailto:` 等）→ そのまま
+- ハッシュ（`#section`）→ そのまま
+- それ以外 → `webview.asWebviewUri(vscode.Uri.joinPath(documentDir, relPath))` で変換
+
+`webviewOptions.localResourceRoots` に**ドキュメントのディレクトリを追加**することも必須（既定の extensionUri 配下しか読めない）。
+
+### 削除すべき要素
+- 既存の `<meta http-equiv="Content-Security-Policy">` → 拡張の CSP と衝突するので削除
+- `<base href="...">` → WebView 内で URL 解決が壊れる原因。viewer や preview.js のリソース解決も壊すので必ず削除
+
+### 動かないユーザHTML要素（仕様）
+| 要素 | 理由 |
+|------|------|
+| インライン `<script>...</script>` | CSP の `'nonce-...'` に一致しないため実行不可 |
+| 外部 `<script src="./X.js">` | 上記同様、信頼できる nonce を付けられない |
+| 外部 `<link rel="stylesheet" href="./X.css">` | CSP `style-src` が `'unsafe-inline'` のみ許可（`<style>` インラインなら動く） |
+
+検出時はプレビュー本文先頭に黄色い警告バナー（`#__drawio-in-html-warnings`）を挿入する。
+
+### slot 集合の差分検出（再描画コスト削減）
+ドキュメントが変更された場合：
+- **slot 集合（`data-diagram-id` の順序付き集合）が変わっていない**：XML 差分のみ postMessage で送信し、各 slot を再レンダリング（cheap）
+- **slot 集合が変わった**（追加/削除/順序変更）：HTML 全体を再構築して `webview.html` に再設定（expensive）
+
+後者は debounce 300ms で打消し合いを避ける。
+
+### サポート外の既知CSP違反
+viewer-static.min.js は MathJax を遅延ロードしようとして `https://viewer.diagrams.net/math4/es5/startup.js` を取得しようとし、CSP `script-src` 違反になる。**数式図を含まなければ実害なし**で、現状無視している。
+
+将来 MathJax 対応する場合は CSP `script-src` に `https://viewer.diagrams.net` を追加する必要がある。
+
+### node-html-parser の API メモ
+- `parse(html)` でルート HTMLElement を取得
+- `el.insertAdjacentHTML('afterbegin' | 'beforeend' | ...)` で隣接挿入
+- `el.replaceWith('<新しいHTML>')` で要素置換（文字列でOK）
+- `el.querySelector(selector)` / `el.querySelectorAll(selector)`
+- `el.setAttribute(name, value)` / `el.getAttribute(name)`
+- `new HTMLElement(...)` の直接コンストラクタは不安定（外部APIではない）→ `parse()` 経由で生成すべき

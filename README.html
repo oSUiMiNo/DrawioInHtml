@@ -126,16 +126,19 @@
 <h1>Drawio in HTML</h1>
 
 <p>
-  単一のHTMLファイル内に埋め込んだ Drawio 図を、VSCode 上で<strong>静的SVGとして閲覧</strong>し、必要な時だけ<strong>別タブで Drawio エディタを開いて編集</strong>できる拡張機能。
-  保存先は同じHTMLファイルで、<strong>単一HTML完結を維持</strong>します。
+  VSCode で HTML ファイルを開くと、<strong>HTML本文をそのままプレビュー表示</strong>しつつ、HTML内に埋め込まれた <code>&lt;script type="application/drawio+xml"&gt;</code> を<strong>元の位置にインラインで Drawio 図として描画</strong>する拡張機能。必要な時だけ別タブで Drawio エディタを開いて編集でき、<strong>保存先は同じHTMLファイル</strong>で単一HTML完結を維持します。
+</p>
+
+<p>
+  Markdown プレビューが <code>![image]()</code> を画像として描画するのと同じ感覚で、HTML プレビューで Drawio 図が表示されます。
 </p>
 
 <h2>何ができる？</h2>
 
 <ul>
-  <li>HTMLの中に <code>&lt;script type="application/drawio+xml" data-diagram-id="..."&gt;XML&lt;/script&gt;</code> の形で Drawio 図を埋め込み</li>
-  <li>VSCode で対象 HTML を右クリック → <strong>Open With → Drawio HTML Editor</strong> で開くと、各図が SVG として静的に並ぶ</li>
-  <li>マウスホバーで右上にオーバーレイ表示される<strong>「🔍 拡大」「✏️ 編集」</strong>ボタン
+  <li>VSCode で対象 HTML を右クリック → <strong>Open With → Drawio HTML Editor</strong> で開くと、<strong>HTML本文（見出し、段落、表、画像、リンク）が普通にプレビュー表示</strong>される</li>
+  <li>HTMLの中に <code>&lt;script type="application/drawio+xml" data-diagram-id="..."&gt;XML&lt;/script&gt;</code> を入れておくと、<strong>その位置にインラインで Drawio 図が SVG として描画</strong>される</li>
+  <li>図にマウスホバーで右上にオーバーレイ表示される<strong>「🔍 拡大」「✏️ 編集」</strong>ボタン
     <ul>
       <li><strong>拡大</strong>：画面全体に展開（<kbd>ESC</kbd> または「✕ 縮小」で戻る）</li>
       <li><strong>編集</strong>：右側に編集タブが開き、Drawio 公式エディタで編集できる</li>
@@ -143,6 +146,7 @@
   </li>
   <li>Drawio エディタで保存（💾）すると、元のHTMLの該当 <code>&lt;script&gt;</code> の中身だけが書き換わり、<strong>HTMLファイルもディスクに自動保存</strong>される</li>
   <li>1つのHTMLに複数の Drawio 図を埋め込み可。それぞれ独立して編集できる</li>
+  <li>相対パス画像 <code>&lt;img src="./img.png"&gt;</code> も同フォルダなら表示可能（<code>webview.asWebviewUri()</code> で自動変換）</li>
 </ul>
 
 <h2>必要環境</h2>
@@ -155,21 +159,20 @@
 
 <h2>インストール</h2>
 
-<h3>方法A: VSIX を使う（本リポジトリの場合）</h3>
+<h3>方法A: VSCode Marketplace から（推奨）</h3>
 
-<pre><code>git clone &lt;このリポジトリ&gt;
-cd DrawioInHtml
-npm install           # postinstallでviewer-static.min.js(3.6MB)が自動取得される
-npm run compile
-npx --yes @vscode/vsce package
-code --install-extension drawio-in-html-0.1.0.vsix
+<p>VSCode 左サイドバーの拡張機能タブを開き、<code>drawio-in-html</code> で検索して Install。または：</p>
+
+<pre><code>code --install-extension Maku.drawio-in-html
 </code></pre>
 
-<h3>方法B: 開発時（F5 で Extension Development Host 起動）</h3>
+<h3>方法B: ソースから開発・カスタムビルド</h3>
 
-<pre><code>npm install
+<pre><code>git clone https://github.com/oSUiMiNo/DrawioInHtml.git
+cd DrawioInHtml
+npm install           # postinstall で viewer-static.min.js (3.6MB) が自動取得される
 npm run compile
-# その後VSCodeでこのフォルダを開いて F5
+# VSCode でフォルダを開いて F5（Extension Development Host が起動）
 </code></pre>
 
 <h2>HTMLへの埋め込み方</h2>
@@ -228,14 +231,16 @@ npm run compile
 <h2>アーキテクチャ概略</h2>
 
 <div class="flow">[VSCode]
- ├─ プレビュータブ（CustomTextEditor）       ← 閲覧専用・静的SVG表示
+ ├─ プレビュータブ（CustomTextEditor）           ← HTML本文+Drawioインライン表示
  │   └─ Webview "preview"
- │        ├─ viewer-static.min.js 同梱読み込み
- │        ├─ 各&lt;script&gt;のXMLを &lt;div class="mxgraph"&gt; に変換しSVG描画
- │        └─ ホバー時に「拡大」「編集」ボタンを overlay 表示
+ │        ├─ ユーザのHTML本文をベースにレンダリング（&lt;head&gt;/&lt;body&gt; 保持）
+ │        ├─ &lt;meta CSP&gt;、preview.css、viewer-static.min.js、preview.js を注入
+ │        ├─ &lt;script type="application/drawio+xml"&gt; を &lt;div class="drawio-slot"&gt; に置換
+ │        ├─ 相対パスの &lt;img&gt;、&lt;link&gt;、&lt;a&gt; 等を webview.asWebviewUri() で自動変換
+ │        └─ slot 内に viewer SVG を生成 / ホバー時オーバーレイ「拡大」「編集」
  │              └─ クリック → 拡張本体へ postMessage
  │
- └─ 編集タブ（WebviewPanel, ViewColumn.Beside）← 1図1タブ
+ └─ 編集タブ（WebviewPanel, ViewColumn.Beside）  ← 1図1タブ
      └─ Webview "editor"
           └─ embed.diagrams.net iframe で Drawio 公式エディタ
                 └─ 保存時に postMessage で XML を拡張本体へ送る
@@ -251,9 +256,10 @@ npm run compile
   <tbody>
     <tr><td><code>src/extension.ts</code></td><td>拡張のエントリポイント</td></tr>
     <tr><td><code>src/editorProvider.ts</code></td><td>プレビュー用 CustomTextEditorProvider</td></tr>
+    <tr><td><code>src/previewHtmlBuilder.ts</code></td><td>ユーザHTMLにCSP/JS注入、Drawio script の slot 化、相対URL変換（純粋関数）</td></tr>
     <tr><td><code>src/editorPanelManager.ts</code></td><td>編集タブのライフサイクル管理</td></tr>
-    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の <code>&lt;script&gt;</code> 抽出・置換の純粋関数</td></tr>
-    <tr><td><code>media/preview.js</code> / <code>preview.css</code></td><td>プレビュー側WebView（SVG描画、ホバー、拡大）</td></tr>
+    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の <code>&lt;script&gt;</code> 抽出・置換（保存往復用、純粋関数）</td></tr>
+    <tr><td><code>media/preview.js</code> / <code>preview.css</code></td><td>プレビュー側WebView（slot 内 SVG 描画、ホバー、拡大）</td></tr>
     <tr><td><code>media/editor.js</code> / <code>editor.css</code></td><td>編集タブ側WebView（Drawioエディタとブリッジ）</td></tr>
     <tr><td><code>media/viewer-static.min.js</code></td><td>Drawio公式ビューアー（postinstallで自動取得）</td></tr>
     <tr><td><code>scripts/fetch-viewer.js</code></td><td>viewer-static.min.js を取得するスクリプト</td></tr>
@@ -290,9 +296,12 @@ npm run compile
 <h2>制約</h2>
 
 <ul>
-  <li>対象は <code>data-diagram-id</code> 属性を持つ <code>&lt;script type="application/drawio+xml"&gt;</code> のみ</li>
+  <li>編集対象は <code>data-diagram-id</code> 属性を持つ <code>&lt;script type="application/drawio+xml"&gt;</code> のみ</li>
   <li>1つのHTML内で <code>data-diagram-id</code> は一意であること</li>
   <li>編集機能はネット必須（Drawio エディタ本体は本家オンライン版を利用）</li>
+  <li>ユーザHTML内のインライン <code>&lt;script&gt;...&lt;/script&gt;</code> と外部 <code>&lt;script src&gt;</code> は <strong>CSP の制約で実行されません</strong>（検出時にプレビュー先頭に警告バナーを表示）</li>
+  <li>ユーザHTML内の外部 <code>&lt;link rel="stylesheet"&gt;</code> も同様に読み込めません（<code>&lt;style&gt;...&lt;/style&gt;</code> をHTML内に直接記述してください）</li>
+  <li>動くもの：HTML本文要素、<code>&lt;style&gt;</code> インラインCSS、<code>https://</code> 絶対URL画像、<code>data:</code> URI、相対パス画像、Drawio埋め込み</li>
 </ul>
 
 <h2>ライセンス・クレジット</h2>

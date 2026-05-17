@@ -94,14 +94,16 @@ npm run compile
 
 ```
 [VSCode]
- ├─ プレビュータブ（CustomTextEditor）       ← 閲覧専用・静的SVG表示
+ ├─ プレビュータブ（CustomTextEditor）           ← HTML本文+Drawioインライン表示
  │   └─ Webview "preview"
- │        ├─ viewer-static.min.js 同梱読み込み
- │        ├─ 各<script>のXMLを <div class="mxgraph"> に変換しSVG描画
- │        └─ ホバー時に「拡大」「編集」ボタンを overlay 表示
+ │        ├─ ユーザのHTML本文をベースにレンダリング（<head>/<body> 保持）
+ │        ├─ <meta CSP>、preview.css、viewer-static.min.js、preview.js を注入
+ │        ├─ <script type="application/drawio+xml"> を <div class="drawio-slot"> に置換
+ │        ├─ 相対パスの <img>、<link>、<a> 等を webview.asWebviewUri() で自動変換
+ │        └─ slot 内に viewer SVG を生成 / ホバー時オーバーレイ「拡大」「編集」
  │              └─ クリック → 拡張本体へ postMessage
  │
- └─ 編集タブ（WebviewPanel, ViewColumn.Beside）← 1図1タブ
+ └─ 編集タブ（WebviewPanel, ViewColumn.Beside）  ← 1図1タブ
      └─ Webview "editor"
           └─ embed.diagrams.net iframe で Drawio 公式エディタ
                 └─ 保存時に postMessage で XML を拡張本体へ送る
@@ -115,9 +117,10 @@ npm run compile
 |------|------|
 | `src/extension.ts` | 拡張のエントリポイント |
 | `src/editorProvider.ts` | プレビュー用 CustomTextEditorProvider |
+| `src/previewHtmlBuilder.ts` | ユーザHTMLにCSP/JS注入、Drawio script の slot 化、相対URL変換（純粋関数） |
 | `src/editorPanelManager.ts` | 編集タブのライフサイクル管理 |
-| `src/htmlPatcher.ts` | HTML内の `<script>` 抽出・置換の純粋関数 |
-| `media/preview.js` / `preview.css` | プレビュー側WebView（SVG描画、ホバー、拡大） |
+| `src/htmlPatcher.ts` | HTML内の `<script>` 抽出・置換（保存往復用、純粋関数） |
+| `media/preview.js` / `preview.css` | プレビュー側WebView（slot 内 SVG 描画、ホバー、拡大） |
 | `media/editor.js` / `editor.css` | 編集タブ側WebView（Drawioエディタとブリッジ） |
 | `media/viewer-static.min.js` | Drawio公式ビューアー（postinstallで自動取得） |
 | `scripts/fetch-viewer.js` | viewer-static.min.js を取得するスクリプト |

@@ -200,15 +200,15 @@ npm run compile      # コンパイル確認
   <li>
     <strong>バージョン番号を上げる</strong> — <code>package.json</code> の <code>version</code> フィールドを編集。<a href="https://semver.org/lang/ja/">SemVer</a> 準拠で：
     <ul>
-      <li><strong>パッチ</strong>（バグ修正のみ）: <code>0.1.0 → 0.1.1</code></li>
-      <li><strong>マイナー</strong>（後方互換ある機能追加）: <code>0.1.0 → 0.2.0</code></li>
-      <li><strong>メジャー</strong>（互換性破壊）: <code>0.1.0 → 1.0.0</code></li>
+      <li><strong>パッチ</strong>（バグ修正のみ）: <code>0.2.0 → 0.2.1</code></li>
+      <li><strong>マイナー</strong>（後方互換ある機能追加）: <code>0.2.0 → 0.3.0</code></li>
+      <li><strong>メジャー</strong>（互換性破壊）: <code>0.2.0 → 1.0.0</code></li>
     </ul>
     <p><code>npx --yes @vscode/vsce publish patch</code> / <code>minor</code> / <code>major</code> でも自動加算できる。</p>
   </li>
   <li>
     <strong>CHANGELOG.md に変更を追記</strong>
-    <pre><code>## [0.1.1] - 2026-05-25
+    <pre><code>## [0.2.1] - 2026-MM-DD
 
 ### Fixed
 - 〇〇のときに××がうまく動かない問題を修正
@@ -219,7 +219,7 @@ npm run compile      # コンパイル確認
   <li>
     <strong>Git に commit してリモートに push</strong>
     <pre><code>git add package.json CHANGELOG.md &lt;変更したファイル&gt;
-git commit -m "release: v0.1.1 — 〇〇の修正"
+git commit -m "release: v0.2.1 — 〇〇の修正"
 git push origin main</code></pre>
   </li>
   <li>
@@ -238,8 +238,8 @@ git push origin main</code></pre>
 
 <div class="callout warn">
   <strong>git tag を打つ習慣</strong>
-  バージョンを上げたコミットに <code>git tag v0.1.1 &amp;&amp; git push origin v0.1.1</code> で
-  タグを打っておくと、後で「v0.1.1 のソースを見たい」となったときに辿りやすい。GitHub の Releases 機能に紐付けて
+  バージョンを上げたコミットに <code>git tag v0.2.1 &amp;&amp; git push origin v0.2.1</code> で
+  タグを打っておくと、後で「v0.2.1 のソースを見たい」となったときに辿りやすい。GitHub の Releases 機能に紐付けて
   リリースノートを書くこともできる。
 </div>
 
@@ -389,7 +389,7 @@ npm run fetch-viewer
 <h3>バージョンを取り消したい</h3>
 
 <pre><code># 特定バージョンだけ取り消す
-npx --yes @vscode/vsce unpublish Maku.drawio-in-html 0.1.0</code></pre>
+npx --yes @vscode/vsce unpublish Maku.drawio-in-html 0.2.0</code></pre>
 
 <p>
   既にインストール済みのユーザからは消えないが、新規ダウンロード不可になる。
