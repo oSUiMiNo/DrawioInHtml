@@ -3,6 +3,15 @@
 本拡張機能のすべての注目すべき変更はこのファイルに記録される。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に準拠する。
 
+## [0.1.1] - 2026-05-18
+
+### Fixed
+- 拡張機能の activate に失敗していた問題を修正（`Cannot find module 'he'`）。
+  `.vscodeignore` で `node_modules/**` を全除外していたため、`node-html-parser` の
+  推移的依存である `he`、`css-select`、`entities` 等が VSIX に同梱されず、
+  `node-html-parser` の require が失敗してプロバイダがロードされなかった。
+  `vsce` のデフォルト挙動（`npm list --production` での自動同梱）に任せるよう修正。
+
 ## [0.1.0] - 2026-05-18
 
 ### Added
