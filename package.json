@@ -1,0 +1,44 @@
+{
+  "name": "drawio-in-html",
+  "displayName": "Drawio in HTML",
+  "description": "単一HTMLファイルに埋め込まれたDrawio図をその場で編集できるVSCode拡張機能",
+  "version": "0.1.0",
+  "publisher": "osuim",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "drawioInHtml.editor",
+        "displayName": "Drawio HTML Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.html"
+          }
+        ],
+        "priority": "option"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "fetch-viewer": "node scripts/fetch-viewer.js",
+    "postinstall": "node scripts/fetch-viewer.js",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "node-html-parser": "^6.1.13"
+  }
+}

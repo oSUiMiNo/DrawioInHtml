@@ -1,0 +1,10 @@
+node_modules/
+out/
+*.vsix
+.vscode-test/
+
+# postinstall (scripts/fetch-viewer.js) で取得する大容量ファイル
+media/viewer-static.min.js
+
+# Playwright MCP のセッションキャッシュ
+.playwright-mcp/
