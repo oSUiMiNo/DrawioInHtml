@@ -1,0 +1,126 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--vscode-editor-background, #1e1e1e);
+  color: var(--vscode-foreground, #ccc);
+  font-family: var(--vscode-font-family, sans-serif);
+}
+
+body.has-fullscreen {
+  overflow: hidden;
+}
+
+#warnings {
+  background: #b94a48;
+  color: white;
+  padding: 8px 12px;
+  display: none;
+}
+
+#warnings.show { display: block; }
+
+#diagrams {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.diagram-card {
+  position: relative;
+  border: 1px solid var(--vscode-panel-border, #444);
+  border-radius: 6px;
+  background: white;
+  overflow: auto;
+}
+
+.diagram-card .viewer-host {
+  padding: 4px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.diagram-card .viewer-host .mxgraph {
+  margin: 0;
+}
+
+.diagram-card .empty {
+  color: #999;
+  padding: 24px;
+  text-align: center;
+  font-style: italic;
+  background: white;
+}
+
+/* オーバーレイ：通常時は非表示、カード hover かつ fullscreen で表示 */
+.diagram-card .overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: rgba(45, 45, 45, 0.88);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  font-size: 12px;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.diagram-card:hover .overlay,
+.diagram-card.fullscreen .overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.diagram-card .overlay .title {
+  font-weight: 600;
+  opacity: 0.85;
+  margin-right: 4px;
+}
+
+.diagram-card .overlay .overlay-button {
+  background: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #fff);
+  border: none;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.diagram-card .overlay .overlay-button:hover {
+  background: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+/* 拡大時は画面全面 */
+.diagram-card.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  border-radius: 0;
+  border: none;
+  margin: 0;
+}
+
+.diagram-card.fullscreen .viewer-host {
+  min-height: 100vh;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 0;
+  /* display:flex / align-items / justify-content は通常時から継承される */
+}
