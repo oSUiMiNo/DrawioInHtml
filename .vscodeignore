@@ -1,7 +1,9 @@
 .vscode/**
 .vscode-test/**
+.vscode-test-web/**
 src/**
 .gitignore
+.gitattributes
 tsconfig.json
 node_modules/**
 !node_modules/node-html-parser/**
@@ -9,3 +11,8 @@ node_modules/**
 **/*.ts
 .git/**
 sample/**
+.claude/**
+.playwright-mcp/**
+scripts/**
+drawio_vscode_拡張機能の検討まとめ.html
+*.vsix
