@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>HTML埋め込みDrawioをVSCodeで編集する検討まとめ</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #222;
+    --muted: #666;
+    --accent: #1e6fff;
+    --accent-bg: #eaf2ff;
+    --warn-bg: #fff8e1;
+    --warn-border: #f1c40f;
+    --ok-bg: #e8f6ee;
+    --ok-border: #2ecc71;
+    --code-bg: #f1f3f5;
+    --border: #ddd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.75;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+  h1 {
+    font-size: 1.7em;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 8px;
+    margin-top: 0;
+  }
+  h2 {
+    font-size: 1.3em;
+    margin-top: 2.2em;
+    padding: 8px 12px;
+    background: var(--accent-bg);
+    border-left: 5px solid var(--accent);
+  }
+  h3 {
+    font-size: 1.08em;
+    margin-top: 1.6em;
+    color: var(--accent);
+  }
+  p { margin: 0.6em 0; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    font-family: Consolas, "Courier New", monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 14px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.9em;
+    line-height: 1.5;
+  }
+  .callout {
+    border-left: 5px solid var(--ok-border);
+    background: var(--ok-bg);
+    padding: 12px 16px;
+    margin: 1em 0;
+    border-radius: 4px;
+  }
+  .callout.warn {
+    border-color: var(--warn-border);
+    background: var(--warn-bg);
+  }
+  .callout strong { display: block; margin-bottom: 4px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    background: white;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--accent-bg); }
+  ul, ol { padding-left: 1.6em; }
+  li { margin: 0.3em 0; }
+  .flow {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-family: Consolas, monospace;
+    font-size: 0.92em;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  a { color: var(--accent); }
+  .label-best {
+    display: inline-block;
+    background: var(--ok-border);
+    color: white;
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  footer {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+
+<h1>HTML埋め込みDrawioをVSCodeで編集する — 検討まとめ</h1>
+
+<div class="callout">
+  <strong>結論</strong>
+  実現は可能。さらに「既存の仕組みを使うショートカット経路」が複数存在する。「既存HTML表示の仕組み」が何を指すかで難易度が大きく変わるため、まずそこを切り分けるのが最短ルート。
+</div>
+
+<h2>① 最大のショートカット：「.drawio.svg ファイル」を活用<span class="label-best">推奨</span></h2>
+
+<p>知識カットオフ後（2026年5月時点）の最新版でも、<code>hediet.vscode-drawio</code>（v1.9.0系）は健在で、これが鍵。</p>
+
+<h3>仕組み</h3>
+<ul>
+  <li><code>*.drawio.svg</code> というファイルは「正当なSVG画像」かつ「Drawio編集データ」の<strong>二重構造</strong>（SVG内部にXMLが埋め込まれている）。</li>
+  <li>HTML側は <code>&lt;img src="diagram.drawio.svg"&gt;</code> で普通に表示するだけ。</li>
+  <li>そのファイルをVSCodeで開くと <code>hediet.vscode-drawio</code> が起動して Drawio UI で編集できる。保存するとSVG表示部分も自動で更新される。</li>
+  <li>HTMLビュアー（例：Live Preview拡張）は何も知らないまま、最新の図を再表示する。</li>
+</ul>
+
+<div class="callout">
+  <strong>メリット</strong>
+  自作実装ゼロで「HTML埋め込みDrawioをその場で編集」が成立する。<code>.drawio.png</code> でも同じ仕組みが使える。
+</div>
+
+<h2>② 「HTML本文の中に直接Drawio XMLを書き込む」場合</h2>
+
+<p>ここからは話が変わる。<strong>編集機能を“どこに”寄生させるか</strong>で3つの候補に分かれる。</p>
+
+<h3>候補A：VSCode組み込みの Markdown Preview を拡張</h3>
+<ul>
+  <li>公式が <code>markdown.markdownItPlugins</code> という拡張ポイントを公開している。</li>
+  <li><code>Markdown Preview Mermaid Support</code> が Mermaid でやっている手法と同じ流れ。</li>
+  <li>Drawio公式の <strong>Embed Mode</strong>（<code>https://embed.diagrams.net/?embed=1&amp;proto=json</code>）を <code>&lt;iframe&gt;</code> で差し込み、<code>postMessage</code> で load / save を仲介するブリッジを書くだけ。</li>
+  <li>既存類似品 <code>dzylikecode.vscode-drawio-plugin-markdown</code> がほぼこの構成 → <strong>フォークするのが最速</strong>。</li>
+</ul>
+
+<h3>候補B：HTMLファイル自体のプレビューを拡張</h3>
+<ul>
+  <li>Microsoft純正の <code>Live Preview</code> 拡張は<strong>プラグイン拡張ポイントを公開していない</strong>。</li>
+  <li>そのため、既存の仕組みに乗ることができず、結局自作Custom Editor / Webview を一から作ることになる。</li>
+  <li>「ショートカット」要件には合わない。</li>
+</ul>
+
+<h3>候補C：Drawio公式 Embed Mode を WebView で包んだ薄い自作拡張</h3>
+<ul>
+  <li>30〜50行レベルでプロトタイプ可能。</li>
+  <li>Drawioエディタ機能はすべて本家iframeに丸投げ。</li>
+  <li>自分が書くのは「保存ボタン押下 → XML受け取り → HTMLに書き戻す」だけ。</li>
+</ul>
+
+<h2>③ 判断フロー</h2>
+
+<div class="flow">HTMLに「画像参照」で十分?
+  ├─ Yes → ★ .drawio.svg + hediet拡張で完了（実装ゼロ）
+  └─ No（HTML内にXMLを直接埋めたい）
+      │
+      ソースがMarkdown?
+      ├─ Yes → 候補A：Markdown Preview拡張（既存をフォークが最速）
+      └─ No（純HTML）
+          → 候補C：Embed ModeをWebViewで包む薄い自作拡張</div>
+
+<h2>④ 「機能が無限」問題への根本回答</h2>
+
+<div class="callout warn">
+  <strong>原則</strong>
+  Drawioエディタを自分で再実装しないこと。これが唯一の正解。
+</div>
+
+<p><code>embed=1&amp;proto=json</code> パラメータ付きで本家エディタを <code>&lt;iframe&gt;</code> として読み込めば、シェイプ追加・スタイル・エクスポートなどの<strong>新機能は本家アップデートで自動的についてくる</strong>。あなたが書くべきは「保存イベントを受け取って書き戻す」入出力ブリッジのみ。</p>
+
+<h2>⑤ 比較表</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>経路</th>
+      <th>実装量</th>
+      <th>編集できる対象</th>
+      <th>推奨度</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>① .drawio.svg + hediet拡張</td>
+      <td>ゼロ</td>
+      <td>HTMLから画像参照されたDrawio図</td>
+      <td>★★★</td>
+    </tr>
+    <tr>
+      <td>候補A：Markdown Preview拡張</td>
+      <td>小（既存フォーク）</td>
+      <td>Markdown内に埋め込まれたDrawio</td>
+      <td>★★</td>
+    </tr>
+    <tr>
+      <td>候補B：HTML Preview拡張</td>
+      <td>大（自作必須）</td>
+      <td>純HTML内のDrawio</td>
+      <td>×</td>
+    </tr>
+    <tr>
+      <td>候補C：Embed Mode薄ラッパー</td>
+      <td>小</td>
+      <td>純HTML内のDrawio（自作Webview）</td>
+      <td>★★</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>⑥ 推奨アクション</h2>
+
+<ol>
+  <li>まず<strong>「.drawio.svg + hediet拡張」で要件が満たせるかを試す</strong>。これで足りるなら拡張機能の自作は不要。</li>
+  <li>不足する場合のみ、ソースがMarkdownか純HTMLかで候補A／Cに分岐する。</li>
+  <li>いずれの場合も「Drawioエディタ本体を自作しない」のが鉄則。本家 Embed Mode を使い倒す。</li>
+</ol>
+
+<footer>
+  参考：
+  <ul>
+    <li><a href="https://github.com/hediet/vscode-drawio">hediet/vscode-drawio (GitHub)</a></li>
+    <li><a href="https://www.drawio.com/doc/faq/embed-mode">Embed mode - draw.io 公式ドキュメント</a></li>
+    <li><a href="https://www.drawio.com/blog/embedding-walkthrough">Simple draw.io embedding walk-through</a></li>
+    <li><a href="https://code.visualstudio.com/api/extension-guides/markdown-extension">Markdown Extension - VS Code Extension API</a></li>
+    <li><a href="https://marketplace.visualstudio.com/items?itemName=dzylikecode.vscode-drawio-plugin-markdown">dzylikecode Markdown plugin (Marketplace)</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>
