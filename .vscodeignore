@@ -15,4 +15,5 @@ sample/**
 .playwright-mcp/**
 scripts/**
 drawio_vscode_拡張機能の検討まとめ.html
+PUBLISH-STEPS.md
 *.vsix
