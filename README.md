@@ -1,5 +1,9 @@
 # Drawio in HTML
 
+[![Version](https://img.shields.io/visual-studio-marketplace/v/Maku.drawio-in-html)](https://marketplace.visualstudio.com/items?itemName=Maku.drawio-in-html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub](https://img.shields.io/badge/GitHub-source-blue?logo=github)](https://github.com/oSUiMiNo/DrawioInHtml)
+
 単一のHTMLファイル内に埋め込んだ Drawio 図を、VSCode 上で**静的SVGとして閲覧**し、必要な時だけ**別タブで Drawio エディタを開いて編集**できる拡張機能。**保存先は同じHTMLファイル**で、単一HTML完結を維持。
 
 ## 何ができる？
@@ -20,23 +24,23 @@
 
 ## インストール
 
-### 方法A: VSIX を使う（本リポジトリの場合）
+### 方法A: VSCode Marketplace から（推奨）
+
+VSCode 左サイドバーの拡張機能タブを開き、`drawio-in-html` で検索 → Install。
+または：
 
 ```sh
-git clone <このリポジトリ>
-cd DrawioInHtml
-npm install           # postinstallでviewer-static.min.js(3.6MB)が自動取得される
-npm run compile
-npx --yes @vscode/vsce package
-code --install-extension drawio-in-html-0.1.0.vsix
+code --install-extension Maku.drawio-in-html
 ```
 
-### 方法B: 開発時（F5 で Extension Development Host 起動）
+### 方法B: ソースから開発・カスタムビルド
 
 ```sh
-npm install
+git clone https://github.com/oSUiMiNo/DrawioInHtml.git
+cd DrawioInHtml
+npm install           # postinstall で viewer-static.min.js (3.6MB) が自動取得される
 npm run compile
-# その後VSCodeでこのフォルダを開いて F5
+# VSCode でフォルダを開いて F5（Extension Development Host が起動）
 ```
 
 ## HTMLへの埋め込み方

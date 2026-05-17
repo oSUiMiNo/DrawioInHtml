@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- 背景：紙(HTML)を表すライトトーンの矩形 -->
+  <rect x="8" y="8" width="112" height="112" rx="14" fill="#ffffff" stroke="#1e6fff" stroke-width="4"/>
+
+  <!-- HTML感を示す <> アクセント -->
+  <text x="22" y="30" font-family="Consolas, monospace" font-size="14" font-weight="700" fill="#1e6fff" opacity="0.85">&lt;/&gt;</text>
+
+  <!-- Drawio図っぽい3要素：箱と接続線 -->
+  <!-- 左の箱 -->
+  <rect x="22" y="48" width="34" height="22" rx="3" fill="#FFF9B2" stroke="#000" stroke-width="1.5"/>
+  <!-- 右上の箱 -->
+  <rect x="78" y="40" width="34" height="22" rx="3" fill="#FFF9B2" stroke="#000" stroke-width="1.5"/>
+  <!-- 右下の箱 -->
+  <rect x="78" y="76" width="34" height="22" rx="3" fill="#FFF9B2" stroke="#000" stroke-width="1.5"/>
+
+  <!-- 接続線 -->
+  <line x1="56" y1="59" x2="78" y2="51" stroke="#000" stroke-width="2"/>
+  <line x1="56" y1="59" x2="78" y2="87" stroke="#000" stroke-width="2"/>
+
+  <!-- 矢じり -->
+  <polygon points="78,51 72,49 72,53" fill="#000"/>
+  <polygon points="78,87 72,85 72,89" fill="#000"/>
+
+  <!-- 大きめの "D" ロゴ風 -->
+  <text x="62" y="116" font-family="'Hiragino Sans', sans-serif" font-size="14" font-weight="800" fill="#1e6fff" text-anchor="middle">Drawio</text>
+</svg>
