@@ -13,7 +13,11 @@ export function extractDrawioBlocks(html: string): DrawioBlock[] {
   const blocks: DrawioBlock[] = [];
   for (const el of scripts) {
     const diagramId = el.getAttribute('data-diagram-id') ?? '';
-    blocks.push({ diagramId, xml: el.text.trim() });
+    // .text は HTML エンティティをデコードしてしまうので、生のスクリプトボディを保持する .rawText を使う。
+    // 例：value="...&lt;script&gt;..." を含む XML が、.text 経由だと
+    // value="...<script>..." に化け、attribute 内に裸の `<` が出現して
+    // Drawio iframe 側の XML パースで「Unescaped '<' not allowed in attributes values」になる。
+    blocks.push({ diagramId, xml: el.rawText.trim() });
   }
   return blocks;
 }

@@ -216,3 +216,25 @@ viewer-static.min.js は MathJax を遅延ロードしようとして `https://v
 - `el.querySelector(selector)` / `el.querySelectorAll(selector)`
 - `el.setAttribute(name, value)` / `el.getAttribute(name)`
 - `new HTMLElement(...)` の直接コンストラクタは不安定（外部APIではない）→ `parse()` 経由で生成すべき
+
+### ⚠️ 重要：`<script>` 内容の取得は `.text` ではなく `.rawText`
+node-html-parser の `el.text` は **HTMLエンティティを自動デコード**する。
+`<script type="application/drawio+xml">` の中身に
+`value="&lt;a&gt;"` のようなエスケープ済みXMLが含まれている場合、`.text` で取ると
+`value="<a>"` に化けてしまい、Drawio iframe 側の XML パースで
+**"Unescaped '<' not allowed in attributes values"** エラーを起こす。
+
+| プロパティ | エスケープ済みXML `&lt;a value=&quot;hi&quot;&gt;` の結果 |
+|----------|--------|
+| `el.text` | `<a value="hi">` ← デコードされて XML 破壊 |
+| `el.rawText` | `&lt;a value=&quot;hi&quot;&gt;` ← 生のまま、正しい |
+| `el.innerHTML` | `&lt;a value=&quot;hi&quot;&gt;` ← 同じく生のまま |
+
+本拡張では `extractDrawioBlocks` (htmlPatcher.ts) で **必ず `.rawText` を使う**。
+生のXML（demo.html のように `<` `>` を直接書いたもの）でも、エスケープ済みXML
+（README.html の Drawio図のように `&lt;` `&quot;` を使ったもの）でも、
+`.rawText` なら両方とも壊さずに扱える。
+
+検証：v0.2.1 で発覚。`<script>` 内に **HTMLエンティティが含まれる XML を
+書く拡張機能ユーザは限定的だが、Drawioエディタが保存時に valueの中に文字列を
+持つ図を書き戻す可能性は十分にある**ので、根本対策として `.rawText` 採用が必須。

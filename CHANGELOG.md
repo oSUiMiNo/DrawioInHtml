@@ -3,6 +3,12 @@
 本拡張機能のすべての注目すべき変更はこのファイルに記録される。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に準拠する。
 
+## [0.2.1] - 2026-05-18
+
+### Fixed
+- `<script type="application/drawio+xml">` の中身に HTML エンティティ（`&lt;`、`&quot;`、`&gt;` 等）を含むXMLを編集タブで開くと「図面ファイルではありません (Unescaped '<' not allowed in attributes values)」エラーで開けなかった問題を修正。
+  原因：`htmlPatcher.extractDrawioBlocks` が `node-html-parser` の `el.text` でXMLを取得しており、これが HTML エンティティをデコードしてしまうため、`value="...&lt;script&gt;..."` のような属性値が `value="...<script>..."` に化けて Drawio 側の XML パースで失敗していた。`el.text` → `el.rawText` に置換して生の文字列を保持するようにした。
+
 ## [0.2.0] - 2026-05-18
 
 ### Added
