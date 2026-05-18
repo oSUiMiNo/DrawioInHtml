@@ -120,6 +120,16 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     head.insertAdjacentHTML('beforeend', '<meta name="color-scheme" content="light dark">');
   }
 
+  // ユーザHTML が CDN や別パスから viewer-static.min.js を読み込んでいる場合、
+  // 拡張同梱版とぶつかって二重ロード→処理競合になる。プレビュー時は拡張側だけで
+  // 描画したいので、該当 <script src> を DOM から削除する（ソースHTMLは無変更）。
+  for (const scriptEl of Array.from(root.querySelectorAll('script[src]'))) {
+    const src = scriptEl.getAttribute('src') ?? '';
+    if (/viewer-static\.min\.js(\?|$|#)/i.test(src)) {
+      scriptEl.remove();
+    }
+  }
+
   // 相対パス URL 変換
   rewriteRelativeUrl(root, 'img', 'src', documentDir, webview);
   rewriteRelativeUrl(root, 'link', 'href', documentDir, webview);
@@ -176,17 +186,16 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   }
 
   // ユーザ自前の描画ホスト（<div class="mxgraph">、<div class="drawio-host">）を非表示にする CSS。
-  // 拡張描画 slot 内の .mxgraph は preview.js が動的に生成するため、それを除外する必要がある。
-  // CSS specificity: `.drawio-slot .mxgraph` (0,2,0) が `.mxgraph` (0,1,0) より勝つので
-  // slot 内は再表示される。
+  // 拡張描画は preview.js が `.mxgraph.drawio-rendered` クラスで作るので、
+  // `.mxgraph:not(.drawio-rendered)` で確実に分離する（v0.3.2 の `display: revert` トリックは
+  // 一部 Chromium で期待通りにならないケースがあったため廃止）。
   if (diagramIds.length > 0) {
     head.insertAdjacentHTML(
       'beforeend',
       `<style id="__drawio-in-html-hide-native">
-        /* ユーザ自前の描画ホストを隠す（拡張側でリッチ描画するため二重表示を防ぐ） */
-        .mxgraph, .drawio-host { display: none !important; }
-        /* ただし拡張の slot 内に preview.js が生成する mxgraph は表示する */
-        .drawio-slot, .drawio-slot * { display: revert !important; }
+        /* 拡張描画でない .mxgraph と、ユーザ自前ホスト div を隠す */
+        .mxgraph:not(.drawio-rendered),
+        .drawio-host { display: none !important; }
       </style>`
     );
   }

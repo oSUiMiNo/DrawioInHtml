@@ -3,6 +3,15 @@
 本拡張機能のすべての注目すべき変更はこのファイルに記録される。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に準拠する。
 
+## [0.3.3] - 2026-05-18
+
+### Fixed
+- **viewer-static.min.js の二重ロード問題**：ユーザHTML が CDN（`<script src="https://viewer.diagrams.net/...">` 等）から viewer をロードしていると、拡張同梱版と二重に動作して `processElements` が競合し、図が小さくしか描画されない／編集ボタンが出ない症状が起きていた。プレビュー時にユーザHTML 内の `viewer-static.min.js` を読む `<script src>` を DOM から削除して回避（ソースHTMLは無変更）
+- **CSS 分離の堅牢化**：v0.3.2 の `display: revert !important` トリックが一部 Chromium 環境で期待通り動かないケースに対応。preview.js が生成する拡張描画 `<div class="mxgraph">` に専用クラス `drawio-rendered` を付与し、CSS を `.mxgraph:not(.drawio-rendered) { display: none !important; }` に変更して厳密に分離
+
+### Compatibility
+- `Test.html` のような「CDN viewer ロード + 自前 mountDrawio + `<script type="application/xml" id="X">`」パターンが**書き換え不要で**拡張のリッチ描画＋編集ボタン込みで動くようになった
+
 ## [0.3.2] - 2026-05-18
 
 ### Added

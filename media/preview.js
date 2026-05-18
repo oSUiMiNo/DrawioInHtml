@@ -120,7 +120,10 @@
       return;
     }
     const div = document.createElement('div');
-    div.className = 'mxgraph';
+    // 'drawio-rendered' は拡張描画である目印。
+    // previewHtmlBuilder の CSS `.mxgraph:not(.drawio-rendered)` で
+    // ユーザ自前の .mxgraph と確実に分離する。
+    div.className = 'mxgraph drawio-rendered';
     div.setAttribute(
       'data-mxgraph',
       JSON.stringify({
