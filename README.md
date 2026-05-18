@@ -69,7 +69,7 @@ npm run compile
 
 ### B. Portable (also renders in a plain browser, recommended)
 
-If you also want the diagram to render in a regular browser, load `viewer-static.min.js` from the Drawio CDN and provide your own `<div class="mxgraph">` alongside the extension marker. See `sample/portable-example.html`.
+If you also want the diagram to render in a regular browser, load `viewer-static.min.js` from the Drawio CDN and provide your own `<div class="mxgraph">` alongside the extension marker. The browser draws via the user-side viewer, while the extension hides the duplicate and renders its own rich version.
 
 ```html
 <script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
@@ -163,7 +163,6 @@ Remove the entry (or change it to `"default"`) to undo.
 | `media/editor.js` / `editor.css` | Editor-side WebView (bridges to embed.diagrams.net) |
 | `media/viewer-static.min.js` | Official Drawio viewer (downloaded by postinstall) |
 | `scripts/fetch-viewer.js` | Downloads viewer-static.min.js |
-| `sample/demo.html` | Sample document |
 
 ## Troubleshooting
 

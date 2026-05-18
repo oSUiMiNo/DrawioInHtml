@@ -6,12 +6,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-source-blue?logo=github)](https://github.com/oSUiMiNo/DrawioInHtml)
 
-VSCode で HTML ファイルを開くと、**HTML本文をそのままプレビュー表示**しつつ、HTML内に埋め込まれた `<script type="application/drawio+xml">` を**元の位置にインラインで Drawio 図として描画**する拡張機能。必要な時だけ別タブで Drawio エディタを開いて編集でき、**保存先は同じHTMLファイル**で単一HTML完結を維持。
+VSCode で HTML ファイルを開くと、**HTML本文をそのままプレビュー表示**しつつ、HTML内に埋め込まれた `<script type="application/xml" data-drawio-id="...">` を**元の位置にインラインで Drawio 図として描画**する拡張機能。必要な時だけ別タブで Drawio エディタを開いて編集でき、**保存先は同じHTMLファイル**で単一HTML完結を維持。
 
 ## 何ができる？
 
 - VSCode で対象 HTML を右クリック → **Open With → Drawio HTML Editor** で開くと、**HTML本文（見出し、段落、表、画像、リンク）が普通にプレビュー表示**される
-- HTMLの中に `<script type="application/drawio+xml" data-diagram-id="...">XML</script>` を入れておくと、**その位置にインラインで Drawio 図が SVG として描画**される
+- HTMLの中に `<script type="application/xml" data-drawio-id="...">XML</script>` を入れておくと、**その位置にインラインで Drawio 図が SVG として描画**される
 - 図にマウスホバーで右上にオーバーレイ表示される **🔍（拡大）/ ✏️（編集）** ボタン
   - **拡大**：画面全体に展開（ESC または ✕で戻る）
   - **編集**：右側に編集タブが開き、Drawio 公式エディタで編集できる
@@ -69,7 +69,7 @@ npm run compile
 
 ### B. ポータブル（ブラウザでも描画される、推奨）
 
-ブラウザでも図を見たい場合、Drawio 公式 viewer-static.min.js を CDN から読み込んで `<div class="mxgraph">` を自前で書き、加えて拡張が認識するマーカー `<script type="application/xml" data-drawio-id="...">` を併記します。サンプル：`sample/portable-example.html`
+ブラウザでも図を見たい場合、Drawio 公式 viewer-static.min.js を CDN から読み込んで `<div class="mxgraph">` を自前で書き、加えて拡張が認識するマーカー `<script type="application/xml" data-drawio-id="...">` を併記します。ブラウザ表示時はユーザ自前の viewer で描画され、VSCode 拡張で開いた時は自前 div が隠されて拡張のリッチ描画が動きます。
 
 ```html
 <script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
@@ -135,7 +135,7 @@ v0.2.x までのフォーマット。VSCode 拡張で開いた時は描画＋編
  │   └─ Webview "preview"
  │        ├─ ユーザのHTML本文をベースにレンダリング（<head>/<body> 保持）
  │        ├─ <meta CSP>、preview.css、viewer-static.min.js、preview.js を注入
- │        ├─ <script type="application/drawio+xml"> を <div class="drawio-slot"> に置換
+ │        ├─ Drawio script タグ（application/xml + data-drawio-id 等）を <div class="drawio-slot"> に置換
  │        ├─ 相対パスの <img>、<link>、<a> 等を webview.asWebviewUri() で自動変換
  │        └─ slot 内に viewer SVG を生成 / ホバー時オーバーレイ「拡大」「編集」
  │              └─ クリック → 拡張本体へ postMessage
@@ -161,7 +161,6 @@ v0.2.x までのフォーマット。VSCode 拡張で開いた時は描画＋編
 | `media/editor.js` / `editor.css` | 編集タブ側WebView（Drawioエディタとブリッジ） |
 | `media/viewer-static.min.js` | Drawio公式ビューアー（postinstallで自動取得） |
 | `scripts/fetch-viewer.js` | viewer-static.min.js を取得するスクリプト |
-| `sample/demo.html` | 動作確認用サンプル |
 
 ## トラブルシューティング
 
@@ -183,8 +182,8 @@ v0.2.x までのフォーマット。VSCode 拡張で開いた時は描画＋編
 
 ## 制約
 
-- 編集対象は `data-diagram-id` 属性を持つ `<script type="application/drawio+xml">` のみ
-- 1つのHTML内で `data-diagram-id` は一意であること
+- 編集対象は `<script type="application/xml" data-drawio-id="X">` （推奨）、`<script type="application/xml" id="X">` で中身が `<mxfile>` / `<mxGraphModel>` のもの、または旧マーカー `<script type="application/drawio+xml" data-diagram-id="X">`（v0.2.x 互換）
+- 識別子（`data-drawio-id` または `data-diagram-id`）は1つのHTML内で一意であること
 - 編集機能はネット必須（Drawio エディタ本体は本家オンライン版を利用）
 
 ## ⚠️ セキュリティに関する注意

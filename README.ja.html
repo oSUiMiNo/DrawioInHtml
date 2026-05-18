@@ -128,7 +128,7 @@
 <h1>Drawio in HTML</h1>
 
 <p>
-  VSCode で HTML ファイルを開くと、<strong>HTML本文をそのままプレビュー表示</strong>しつつ、HTML内に埋め込まれた <code>&lt;script type="application/drawio+xml"&gt;</code> を<strong>元の位置にインラインで Drawio 図として描画</strong>する拡張機能。必要な時だけ別タブで Drawio エディタを開いて編集でき、<strong>保存先は同じHTMLファイル</strong>で単一HTML完結を維持します。
+  VSCode で HTML ファイルを開くと、<strong>HTML本文をそのままプレビュー表示</strong>しつつ、HTML内に埋め込まれた <code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code> を<strong>元の位置にインラインで Drawio 図として描画</strong>する拡張機能。必要な時だけ別タブで Drawio エディタを開いて編集でき、<strong>保存先は同じHTMLファイル</strong>で単一HTML完結を維持します。
 </p>
 
 <p>
@@ -139,7 +139,7 @@
 
 <ul>
   <li>VSCode で対象 HTML を右クリック → <strong>Open With → Drawio HTML Editor</strong> で開くと、<strong>HTML本文（見出し、段落、表、画像、リンク）が普通にプレビュー表示</strong>される</li>
-  <li>HTMLの中に <code>&lt;script type="application/drawio+xml" data-diagram-id="..."&gt;XML&lt;/script&gt;</code> を入れておくと、<strong>その位置にインラインで Drawio 図が SVG として描画</strong>される</li>
+  <li>HTMLの中に <code>&lt;script type="application/xml" data-drawio-id="..."&gt;XML&lt;/script&gt;</code> を入れておくと、<strong>その位置にインラインで Drawio 図が SVG として描画</strong>される</li>
   <li>図にマウスホバーで右上にオーバーレイ表示される <strong>🔍（拡大）/ ✏️（編集）</strong> ボタン
     <ul>
       <li><strong>拡大</strong>：画面全体に展開（<kbd>ESC</kbd> または ✕ で戻る）</li>
@@ -184,7 +184,7 @@ npm run compile
 &lt;body&gt;
 &lt;h1&gt;システム構成図&lt;/h1&gt;
 
-&lt;script type="application/drawio+xml" data-diagram-id="architecture"&gt;
+&lt;script type="application/xml" data-drawio-id="architecture"&gt;
 &lt;mxGraphModel dx="800" dy="600" grid="1" gridSize="10"&gt;
   &lt;root&gt;
     &lt;mxCell id="0" /&gt;
@@ -197,7 +197,7 @@ npm run compile
 &lt;/script&gt;
 
 &lt;h2&gt;もう1つの図&lt;/h2&gt;
-&lt;script type="application/drawio+xml" data-diagram-id="flow"&gt;
+&lt;script type="application/xml" data-drawio-id="flow"&gt;
 &lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;
 &lt;/script&gt;
 &lt;/body&gt;
@@ -207,10 +207,11 @@ npm run compile
 <div class="callout warn">
   <strong>重要な決まり</strong>
   <ul>
-    <li>必ず <code>type="application/drawio+xml"</code> を指定（これがないと拡張は無視する）</li>
-    <li>必ず <code>data-diagram-id="一意な名前"</code> を付ける（同一HTML内で重複不可、欠落していると赤帯警告）</li>
+    <li>マーカーは <code>type="application/xml"</code> + <code>data-drawio-id</code> 属性（推奨）</li>
+    <li><code>data-drawio-id</code> は同一HTML内で一意であること</li>
     <li>中身は <code>&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;</code> の生のXML、または <code>&lt;mxfile&gt;&lt;diagram&gt;&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;&lt;/diagram&gt;&lt;/mxfile&gt;</code> どちらでもOK</li>
     <li>一度Drawio側で編集して保存すると <code>&lt;mxfile&gt;</code> 形式に統一される</li>
+    <li>旧マーカー <code>type="application/drawio+xml"</code> + <code>data-diagram-id</code> も後方互換でサポート（v0.2.x 用）</li>
   </ul>
 </div>
 
@@ -256,10 +257,10 @@ npm run compile
 
 <div class="callout">
   <strong>このセクションは本拡張のショーケースを兼ねています</strong>
-  下の図は <code>&lt;script type="application/drawio+xml"&gt;</code> として README.html に直接埋め込まれています。本拡張で開いている方は、テキストフロー図の下に Drawio 図が描画されているはずです。
+  下の図は <code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code> として README.html に直接埋め込まれています。本拡張で開いている方は、テキストフロー図の下に Drawio 図が描画されているはずです。
 </div>
 
-<script type="application/drawio+xml" data-diagram-id="architecture">
+<script type="application/xml" data-drawio-id="architecture">
 <mxfile host="embed.diagrams.net">
   <diagram id="readme-architecture" name="アーキテクチャ">
     <mxGraphModel dx="900" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" math="0" shadow="0">
@@ -309,7 +310,7 @@ npm run compile
  │   └─ Webview "preview"
  │        ├─ ユーザのHTML本文をベースにレンダリング（&lt;head&gt;/&lt;body&gt; 保持）
  │        ├─ &lt;meta CSP&gt;、preview.css、viewer-static.min.js、preview.js を注入
- │        ├─ &lt;script type="application/drawio+xml"&gt; を &lt;div class="drawio-slot"&gt; に置換
+ │        ├─ Drawio script タグ（application/xml + data-drawio-id 等）を &lt;div class="drawio-slot"&gt; に置換
  │        ├─ 相対パスの &lt;img&gt;、&lt;link&gt;、&lt;a&gt; 等を webview.asWebviewUri() で自動変換
  │        └─ slot 内に viewer SVG を生成 / ホバー時オーバーレイ「拡大」「編集」
  │              └─ クリック → 拡張本体へ postMessage
@@ -337,7 +338,6 @@ npm run compile
     <tr><td><code>media/editor.js</code> / <code>editor.css</code></td><td>編集タブ側WebView（Drawioエディタとブリッジ）</td></tr>
     <tr><td><code>media/viewer-static.min.js</code></td><td>Drawio公式ビューアー（postinstallで自動取得）</td></tr>
     <tr><td><code>scripts/fetch-viewer.js</code></td><td>viewer-static.min.js を取得するスクリプト</td></tr>
-    <tr><td><code>sample/demo.html</code></td><td>動作確認用サンプル</td></tr>
   </tbody>
 </table>
 
@@ -370,8 +370,8 @@ npm run compile
 <h2>制約</h2>
 
 <ul>
-  <li>編集対象は <code>data-diagram-id</code> 属性を持つ <code>&lt;script type="application/drawio+xml"&gt;</code> のみ</li>
-  <li>1つのHTML内で <code>data-diagram-id</code> は一意であること</li>
+  <li>編集対象は <code>&lt;script type="application/xml" data-drawio-id="X"&gt;</code>（推奨）、<code>&lt;script type="application/xml" id="X"&gt;</code> で中身が <code>&lt;mxfile&gt;</code> / <code>&lt;mxGraphModel&gt;</code> のもの、または旧マーカー <code>&lt;script type="application/drawio+xml" data-diagram-id="X"&gt;</code>（v0.2.x 互換）</li>
+  <li>識別子（<code>data-drawio-id</code> または <code>data-diagram-id</code>）は1つのHTML内で一意であること</li>
   <li>編集機能はネット必須（Drawio エディタ本体は本家オンライン版を利用）</li>
 </ul>
 
