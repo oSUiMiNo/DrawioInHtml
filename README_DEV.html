@@ -2,20 +2,22 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="color-scheme" content="dark light">
 <title>Drawio in HTML — 開発者向けドキュメント</title>
 <style>
   :root {
-    --bg: #fafafa;
-    --fg: #222;
-    --muted: #666;
-    --accent: #1e6fff;
-    --accent-bg: #eaf2ff;
-    --warn-bg: #fff8e1;
-    --warn-border: #f1c40f;
-    --ok-bg: #e8f6ee;
-    --ok-border: #2ecc71;
-    --code-bg: #f1f3f5;
-    --border: #ddd;
+    --bg: #0f1216;
+    --fg: #e5e8ee;
+    --muted: #9aa3ad;
+    --accent: #7da6ff;
+    --accent-bg: #18232f;
+    --warn-bg: #2a230f;
+    --warn-border: #d4a017;
+    --ok-bg: #142a1c;
+    --ok-border: #4caf7a;
+    --code-bg: #181c22;
+    --border: #2a2f37;
+    --table-bg: #161a1f;
   }
   * { box-sizing: border-box; }
   body {
@@ -32,6 +34,7 @@
     border-bottom: 3px solid var(--accent);
     padding-bottom: 8px;
     margin-top: 0;
+    color: #f0f3f8;
   }
   h2 {
     font-size: 1.4em;
@@ -39,6 +42,7 @@
     padding: 8px 12px;
     background: var(--accent-bg);
     border-left: 5px solid var(--accent);
+    color: #f0f3f8;
   }
   h3 {
     font-size: 1.1em;
@@ -46,12 +50,16 @@
     color: var(--accent);
   }
   p { margin: 0.6em 0; }
+  a { color: #8eb6ff; }
+  a:visited { color: #b69aff; }
   code {
     background: var(--code-bg);
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.92em;
     font-family: Consolas, "Courier New", monospace;
+    color: #e0d3a4;
+    border: 1px solid #232830;
   }
   pre {
     background: var(--code-bg);
@@ -61,8 +69,9 @@
     font-size: 0.88em;
     line-height: 1.5;
     border-left: 3px solid var(--accent);
+    color: #d8dde5;
   }
-  pre code { background: transparent; padding: 0; }
+  pre code { background: transparent; padding: 0; border: none; color: inherit; }
   .callout {
     border-left: 5px solid var(--ok-border);
     background: var(--ok-bg);
@@ -76,7 +85,7 @@
     border-collapse: collapse;
     width: 100%;
     margin: 1em 0;
-    background: white;
+    background: var(--table-bg);
   }
   th, td {
     border: 1px solid var(--border);
@@ -88,7 +97,7 @@
   ul, ol { padding-left: 1.6em; }
   li { margin: 0.3em 0; }
   .flow {
-    background: white;
+    background: var(--table-bg);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 16px 20px;
@@ -97,14 +106,16 @@
     white-space: pre;
     overflow-x: auto;
     line-height: 1.5;
+    color: #d8dde5;
   }
   kbd {
-    background: #e8eaed;
-    border: 1px solid #c3c8cd;
+    background: #2a2f37;
+    border: 1px solid #3a4049;
     border-radius: 3px;
     padding: 1px 5px;
     font-family: Consolas, monospace;
     font-size: 0.88em;
+    color: #e5e8ee;
   }
   footer {
     margin-top: 3em;
@@ -113,6 +124,8 @@
     color: var(--muted);
     font-size: 0.85em;
   }
+  /* Drawio 描画スロット用：透過にしておくと拡張機能・ブラウザどちらの描画でも背景に溶け込む */
+  .mxgraph { background: transparent; }
 </style>
 </head>
 <body>
@@ -128,7 +141,11 @@
 
 <div class="callout">
   <strong>本ファイル自体が拡張機能のショーケース</strong>
-  下のアーキテクチャ図は <code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code> として本HTMLに直接埋め込まれている。本拡張機能で本ファイルを開いている場合、テキストフロー図の下に Drawio 図が描画されているはず。ホバーすると右上に 🔍/✏️ アイコンが現れる。
+  下のアーキテクチャ図は <code>&lt;script type="application/xml" id="..."&gt;</code> として本HTMLに直接埋め込まれている。
+  <ul>
+    <li><strong>ブラウザで開いた場合</strong>：CDN viewer + 自前マウントで描画される</li>
+    <li><strong>本拡張機能で開いた場合</strong>：拡張描画に切り替わり、ホバーで 🔍/✏️ アイコンが現れる</li>
+  </ul>
 </div>
 
 <h2>技術的位置づけ</h2>
@@ -147,53 +164,49 @@
   Drawio エディタ機能を持つ既存 VSCode 拡張（hediet.vscode-drawio 等）には依存していない。本拡張機能は完全に独立。
 </p>
 
-<h2>対応マーカー仕様</h2>
+<h2>対応マーカー仕様（v0.5+）</h2>
 
 <p>
-  拡張機能が編集対象として認識する <code>&lt;script&gt;</code> パターンは 3 種類。<code>src/htmlPatcher.ts</code> の <code>extractDrawioBlocks</code> がこの 3 つを順に走査する。
+  v0.5 で拡張専用マーカーは廃止され、認識する形式は<strong>1種類のみ</strong>に統一された。
 </p>
 
-<h3>パターン A: 新マーカー（v0.3+ 推奨）</h3>
-
-<pre><code>&lt;script type="application/xml" data-drawio-id="X"&gt;XML&lt;/script&gt;</code></pre>
-
-<ul>
-  <li><code>type="application/xml"</code> は HTML 標準の未知タイプ扱い → ブラウザは中身を実行しない（安全）</li>
-  <li><code>data-drawio-id</code> が編集識別子（同一HTML内で一意）</li>
-  <li>ブラウザで直接開いた時は何も描画されない（拡張機能専用）</li>
-</ul>
-
-<h3>パターン B: 自前 mount JS パターン（id 属性）</h3>
-
 <pre><code>&lt;script type="application/xml" id="X"&gt;
-&lt;mxfile&gt;...&lt;/mxfile&gt;
+&lt;mxfile&gt;...&lt;/mxfile&gt;  &lt;!-- または &lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt; --&gt;
 &lt;/script&gt;</code></pre>
 
 <ul>
-  <li>中身が <code>&lt;mxfile&gt;</code> または <code>&lt;mxGraphModel&gt;</code> で始まる場合のみ Drawio として認識（汎用 XML データの誤認を防ぐため）</li>
-  <li><code>id</code> 属性が編集識別子になる</li>
-  <li>「ブラウザ側で自前の <code>mountDrawio()</code> 関数を書いて id 経由で読み出す」という一般的な書き方に対応</li>
+  <li>HTML5 標準の「インラインデータブロック」用法。ブラウザは <code>type="application/xml"</code> を未知扱いで実行しないので、副作用ゼロで HTML に置ける</li>
+  <li>編集識別子は <code>id</code> 属性</li>
+  <li>中身が <code>&lt;mxfile&gt;</code> または <code>&lt;mxGraphModel&gt;</code> で始まる場合のみ Drawio として扱う（汎用 XML データを誤認しないため）</li>
 </ul>
 
-<h3>パターン C: 旧マーカー（v0.2.x 互換、後方互換維持）</h3>
+<div class="callout warn">
+  <strong>v0.4 以前との非互換</strong>
+  <code>data-drawio-id</code>（v0.3+ で導入した拡張専用属性）や <code>type="application/drawio+xml"</code>（v0.2.x の旧形式）は<strong>認識されません</strong>。これらを使った既存 HTML は <code>id</code> 属性形式に書き換えてください。XML 中身（<code>&lt;mxfile&gt;...</code>）は変更不要。
+</div>
 
-<pre><code>&lt;script type="application/drawio+xml" data-diagram-id="X"&gt;XML&lt;/script&gt;</code></pre>
-
-<ul>
-  <li><code>type="application/drawio+xml"</code> は拡張機能専用</li>
-  <li>v0.2.x までこの形式が標準だった。v0.3 以降も描画＋編集をフルサポート（破壊的変更なし）</li>
-</ul>
-
-<h3>ポータブル書き方（B. パターン or A. 併用）</h3>
+<h3>ブラウザでも描画する自前マウント</h3>
 
 <p>
-  「ブラウザでも図を見たい」場合、ユーザ自身が <code>viewer-static.min.js</code> を CDN から読み込んで <code>&lt;div class="mxgraph"&gt;</code> を書き、加えて拡張認識用のマーカーを置く：
+  ブラウザで開いた時にも図を表示したい場合は、CDN viewer と自前マウント JS を組み合わせます。本ドキュメント下部のアーキテクチャ図がこの構成の生きた例です。
 </p>
 
 <pre><code>&lt;script src="https://viewer.diagrams.net/js/viewer-static.min.js"&gt;&lt;/script&gt;
-&lt;div class="mxgraph" data-mxgraph='{"xml":"...","toolbar":null}'&gt;&lt;/div&gt;
-&lt;script type="application/xml" data-drawio-id="architecture"&gt;
-&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;
+
+&lt;div class="mxgraph" id="diagram-host-architecture"&gt;&lt;/div&gt;
+
+&lt;script type="application/xml" id="architecture"&gt;
+&lt;mxfile&gt;...&lt;/mxfile&gt;
+&lt;/script&gt;
+
+&lt;script&gt;
+  document.addEventListener('DOMContentLoaded', () =&gt; {
+    const xml = document.getElementById('architecture').textContent;
+    const host = document.getElementById('diagram-host-architecture');
+    GraphViewer.createViewerForElement(host, null, {
+      xml, toolbar: null, 'auto-fit': true, center: true,
+    });
+  });
 &lt;/script&gt;</code></pre>
 
 <p>
@@ -201,14 +214,23 @@
 </p>
 
 <ul>
-  <li>ユーザ自前の <code>&lt;div class="mxgraph"&gt;</code> は CSS <code>.mxgraph:not(.drawio-rendered) { display: none }</code> で自動非表示</li>
+  <li><code>id="architecture"</code> の script を編集対象として認識し、拡張描画スロットを作る</li>
+  <li>ユーザ自前の <code>&lt;div class="mxgraph"&gt;</code> ホストは CSS <code>.mxgraph:not(.drawio-rendered) { display: none }</code> で自動非表示</li>
   <li>ユーザ自前の <code>&lt;script src=".../viewer-static.min.js"&gt;</code> は <code>previewHtmlBuilder</code> が DOM から削除（二重ロード防止）</li>
-  <li>拡張描画 slot だけが見える</li>
+  <li>結果として、拡張描画スロットだけが表示される</li>
 </ul>
 
 <h2>アーキテクチャ概略</h2>
 
-<script type="application/xml" data-drawio-id="architecture">
+<p>
+  下の図は本ドキュメント自身の「自前マウント」例です。ブラウザでも本拡張機能でも描画されます。
+</p>
+
+<script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+
+<div class="mxgraph" id="diagram-host-architecture" style="background: transparent;"></div>
+
+<script type="application/xml" id="architecture">
 <mxfile host="embed.diagrams.net">
   <diagram id="readme-architecture" name="アーキテクチャ">
     <mxGraphModel dx="900" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" math="0" shadow="0">
@@ -253,6 +275,36 @@
 </mxfile>
 </script>
 
+<script>
+  // ブラウザ用：上の <script id="architecture"> から XML を読んで描画する
+  // 本拡張機能で開いた場合は previewHtmlBuilder がこの自前マウントの viewer ロードを削除し、
+  // 拡張描画スロットを優先的に表示する。
+  (function () {
+    function mount() {
+      var xmlScript = document.getElementById('architecture');
+      var host = document.getElementById('diagram-host-architecture');
+      if (!xmlScript || !host) return;
+      if (typeof GraphViewer === 'undefined') return; // CDN viewer 未ロード時は黙って何もしない
+      var xml = xmlScript.textContent || '';
+      GraphViewer.createViewerForElement(host, null, {
+        xml: xml,
+        toolbar: null,
+        lightbox: false,
+        nav: false,
+        'auto-fit': true,
+        'auto-crop': true,
+        center: true,
+        editable: false,
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', mount);
+    } else {
+      mount();
+    }
+  })();
+</script>
+
 <div class="flow">[VSCode]
  ├─ プレビュータブ（CustomTextEditor）           ← HTML本文+Drawioインライン表示
  │   └─ Webview "preview"
@@ -281,7 +333,7 @@
     <tr><td><code>src/editorProvider.ts</code></td><td>プレビュー用 <code>CustomTextEditorProvider</code>。WebView生成・XML差分送信</td></tr>
     <tr><td><code>src/previewHtmlBuilder.ts</code></td><td>ユーザHTMLにCSP/JS注入、Drawio script の slot 化、相対URL変換（純粋関数）</td></tr>
     <tr><td><code>src/editorPanelManager.ts</code></td><td>編集タブの <code>WebviewPanel</code> ライフサイクル管理、保存反映</td></tr>
-    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の <code>&lt;script&gt;</code> 抽出・置換（純粋関数。3マーカー対応）</td></tr>
+    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の <code>&lt;script&gt;</code> 抽出・置換（純粋関数。v0.5+ は id パターン一本）</td></tr>
     <tr><td><code>media/preview.js</code> / <code>preview.css</code></td><td>プレビュー側WebView（slot 内 SVG 描画、ホバー、拡大、テーマ追従）</td></tr>
     <tr><td><code>media/editor.js</code> / <code>editor.css</code></td><td>編集タブ側WebView（Drawioエディタとの postMessage ブリッジ）</td></tr>
     <tr><td><code>media/viewer-static.min.js</code></td><td>Drawio公式ビューアー（同梱。postinstallで自動取得）</td></tr>
@@ -302,7 +354,7 @@ npm run compile
 
 <ol>
   <li>F5 で Extension Development Host が立ち上がる</li>
-  <li>適当な HTML ファイル（Drawio script タグを含む）を開き、右クリック → Open With → Drawio HTML Editor</li>
+  <li>適当な HTML ファイル（<code>&lt;script type="application/xml" id="..."&gt;</code> + <code>&lt;mxfile&gt;</code> を含む）を開き、右クリック → Open With → Drawio HTML Editor</li>
   <li>図がインライン表示され、ホバーで 🔍/✏️ が出ることを確認</li>
   <li>✏️ を押すと右側に編集タブが開き、<code>embed.diagrams.net</code> がロードされる</li>
   <li>編集して保存 → 元の HTML が自動更新される</li>
