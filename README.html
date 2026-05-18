@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Drawio in HTML — README</title>
@@ -19,10 +19,10 @@
   }
   * { box-sizing: border-box; }
   body {
-    font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: var(--bg);
     color: var(--fg);
-    line-height: 1.75;
+    line-height: 1.7;
     max-width: 960px;
     margin: 0 auto;
     padding: 32px 24px 80px;
@@ -62,10 +62,7 @@
     line-height: 1.5;
     border-left: 3px solid var(--accent);
   }
-  pre code {
-    background: transparent;
-    padding: 0;
-  }
+  pre code { background: transparent; padding: 0; }
   .callout {
     border-left: 5px solid var(--ok-border);
     background: var(--ok-bg);
@@ -73,10 +70,7 @@
     margin: 1em 0;
     border-radius: 4px;
   }
-  .callout.warn {
-    border-color: var(--warn-border);
-    background: var(--warn-bg);
-  }
+  .callout.warn { border-color: var(--warn-border); background: var(--warn-bg); }
   .callout strong { display: block; margin-bottom: 4px; }
   table {
     border-collapse: collapse;
@@ -123,66 +117,77 @@
 </head>
 <body>
 
+<p style="text-align:right; margin-top:0;"><strong>English</strong> | <a href="./README.ja.html">日本語</a></p>
+
 <h1>Drawio in HTML</h1>
 
 <p>
-  VSCode で HTML ファイルを開くと、<strong>HTML本文をそのままプレビュー表示</strong>しつつ、HTML内に埋め込まれた <code>&lt;script type="application/drawio+xml"&gt;</code> を<strong>元の位置にインラインで Drawio 図として描画</strong>する拡張機能。必要な時だけ別タブで Drawio エディタを開いて編集でき、<strong>保存先は同じHTMLファイル</strong>で単一HTML完結を維持します。
+  A VSCode extension that <strong>previews HTML files in place</strong> while rendering embedded
+  <code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code> blocks as
+  <strong>inline Drawio SVG diagrams</strong>. When you need to edit a diagram, a side tab
+  opens the official Drawio editor; saving writes the result back into the
+  <strong>same HTML file</strong> — single-file delivery is preserved.
 </p>
 
 <p>
-  Markdown プレビューが <code>![image]()</code> を画像として描画するのと同じ感覚で、HTML プレビューで Drawio 図が表示されます。
+  Think of it like the way Markdown preview renders <code>![image]()</code> — the same idea,
+  but for Drawio diagrams inside HTML.
 </p>
 
-<h2>何ができる？</h2>
+<h2>What you get</h2>
 
 <ul>
-  <li>VSCode で対象 HTML を右クリック → <strong>Open With → Drawio HTML Editor</strong> で開くと、<strong>HTML本文（見出し、段落、表、画像、リンク）が普通にプレビュー表示</strong>される</li>
-  <li>HTMLの中に <code>&lt;script type="application/drawio+xml" data-diagram-id="..."&gt;XML&lt;/script&gt;</code> を入れておくと、<strong>その位置にインラインで Drawio 図が SVG として描画</strong>される</li>
-  <li>図にマウスホバーで右上にオーバーレイ表示される<strong>「🔍 拡大」「✏️ 編集」</strong>ボタン
+  <li>Right-click an HTML file → <strong>Open With → Drawio HTML Editor</strong>. The document body
+    (headings, paragraphs, tables, images, links) is rendered as a live preview.</li>
+  <li>Any <code>&lt;script type="application/xml" data-drawio-id="..."&gt;XML&lt;/script&gt;</code> embedded
+    in the HTML is rendered in place as an <strong>SVG diagram</strong>.</li>
+  <li>Hovering a diagram reveals an overlay with two icon-only buttons:
     <ul>
-      <li><strong>拡大</strong>：画面全体に展開（<kbd>ESC</kbd> または「✕ 縮小」で戻る）</li>
-      <li><strong>編集</strong>：右側に編集タブが開き、Drawio 公式エディタで編集できる</li>
+      <li>🔍 <strong>Toggle fullscreen</strong> — expand the diagram (<kbd>ESC</kbd> or ✕ to exit).</li>
+      <li>✏️ <strong>Edit</strong> — opens a side tab with the official Drawio editor.</li>
     </ul>
   </li>
-  <li>Drawio エディタで保存（💾）すると、元のHTMLの該当 <code>&lt;script&gt;</code> の中身だけが書き換わり、<strong>HTMLファイルもディスクに自動保存</strong>される</li>
-  <li>1つのHTMLに複数の Drawio 図を埋め込み可。それぞれ独立して編集できる</li>
-  <li>相対パス画像 <code>&lt;img src="./img.png"&gt;</code> も同フォルダなら表示可能（<code>webview.asWebviewUri()</code> で自動変換）</li>
+  <li>Saving in the Drawio editor (💾) rewrites only the matching <code>&lt;script&gt;</code> body and
+    <strong>auto-saves the HTML file</strong> to disk.</li>
+  <li>Multiple diagrams per HTML file are supported, each editable independently.</li>
+  <li>Relative-path images (<code>&lt;img src="./img.png"&gt;</code>) in the same folder render correctly.</li>
 </ul>
 
-<h2>必要環境</h2>
+<h2>Requirements</h2>
 
 <ul>
-  <li>VSCode 1.85.0 以降</li>
-  <li><strong>編集時のみ</strong>インターネット接続必須（<code>embed.diagrams.net</code> から Drawio エディタを読み込む）</li>
-  <li>閲覧（プレビュー）はオフラインで動作（Drawio ビューアーは拡張に同梱）</li>
+  <li>VSCode 1.85.0 or later</li>
+  <li>Internet access <strong>only while editing</strong> (the editor side tab loads
+    <code>embed.diagrams.net</code>)</li>
+  <li>Preview itself runs offline — the Drawio viewer is bundled with the extension</li>
 </ul>
 
-<h2>インストール</h2>
+<h2>Install</h2>
 
-<h3>方法A: VSCode Marketplace から（推奨）</h3>
+<h3>A. From the VSCode Marketplace (recommended)</h3>
 
-<p>VSCode 左サイドバーの拡張機能タブを開き、<code>drawio-in-html</code> で検索して Install。または：</p>
+<p>Open the Extensions side bar in VSCode, search for <code>drawio-in-html</code>, click Install. Or:</p>
 
 <pre><code>code --install-extension Maku.drawio-in-html
 </code></pre>
 
-<h3>方法B: ソースから開発・カスタムビルド</h3>
+<h3>B. From source</h3>
 
 <pre><code>git clone https://github.com/oSUiMiNo/DrawioInHtml.git
 cd DrawioInHtml
-npm install           # postinstall で viewer-static.min.js (3.6MB) が自動取得される
+npm install            # postinstall downloads viewer-static.min.js (~3.6 MB)
 npm run compile
-# VSCode でフォルダを開いて F5（Extension Development Host が起動）
+# Open the folder in VSCode and press F5 (launches the Extension Development Host)
 </code></pre>
 
-<h2>HTMLへの埋め込み方</h2>
+<h2>How to embed diagrams in HTML</h2>
 
 <pre><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;body&gt;
-&lt;h1&gt;システム構成図&lt;/h1&gt;
+&lt;h1&gt;System architecture&lt;/h1&gt;
 
-&lt;script type="application/drawio+xml" data-diagram-id="architecture"&gt;
+&lt;script type="application/xml" data-drawio-id="architecture"&gt;
 &lt;mxGraphModel dx="800" dy="600" grid="1" gridSize="10"&gt;
   &lt;root&gt;
     &lt;mxCell id="0" /&gt;
@@ -194,8 +199,8 @@ npm run compile
 &lt;/mxGraphModel&gt;
 &lt;/script&gt;
 
-&lt;h2&gt;もう1つの図&lt;/h2&gt;
-&lt;script type="application/drawio+xml" data-diagram-id="flow"&gt;
+&lt;h2&gt;Another diagram&lt;/h2&gt;
+&lt;script type="application/xml" data-drawio-id="flow"&gt;
 &lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;
 &lt;/script&gt;
 &lt;/body&gt;
@@ -203,89 +208,93 @@ npm run compile
 </code></pre>
 
 <div class="callout warn">
-  <strong>重要な決まり</strong>
+  <strong>Rules</strong>
   <ul>
-    <li>必ず <code>type="application/drawio+xml"</code> を指定（これがないと拡張は無視する）</li>
-    <li>必ず <code>data-diagram-id="一意な名前"</code> を付ける（同一HTML内で重複不可、欠落していると赤帯警告）</li>
-    <li>中身は <code>&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;</code> の生のXML、または <code>&lt;mxfile&gt;&lt;diagram&gt;&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;&lt;/diagram&gt;&lt;/mxfile&gt;</code> どちらでもOK</li>
-    <li>一度Drawio側で編集して保存すると <code>&lt;mxfile&gt;</code> 形式に統一される</li>
+    <li>The marker must be exactly <code>type="application/xml"</code> with a <code>data-drawio-id</code>
+      attribute (otherwise the extension ignores it).</li>
+    <li>The <code>data-drawio-id</code> must be unique within the file.</li>
+    <li>The body can be either <code>&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;</code> or
+      <code>&lt;mxfile&gt;&lt;diagram&gt;&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;&lt;/diagram&gt;&lt;/mxfile&gt;</code>.</li>
+    <li>Once you save from the Drawio editor, the block is normalized to <code>&lt;mxfile&gt;</code> form.</li>
+    <li>Legacy marker <code>type="application/drawio+xml"</code> + <code>data-diagram-id</code> is still supported (v0.2.x compatibility).</li>
   </ul>
 </div>
 
-<h2>操作</h2>
+<h2>Usage</h2>
 
 <table>
   <thead>
-    <tr><th>動作</th><th>操作</th></tr>
+    <tr><th>Action</th><th>How</th></tr>
   </thead>
   <tbody>
-    <tr><td>HTMLをプレビュー表示（ショートカット）</td><td><kbd>Ctrl+Shift+V</kbd>（Mac: <kbd>Cmd+Shift+V</kbd>）</td></tr>
-    <tr><td>HTMLをプレビュー表示（右クリック）</td><td>エクスプローラまたはエディタタブで右クリック → <strong>「Drawio in HTML: プレビューで開く」</strong></td></tr>
-    <tr><td>HTMLをプレビュー表示（旧来手順）</td><td>右クリック → Open With → Drawio HTML Editor</td></tr>
-    <tr><td>図を拡大表示</td><td>カードにホバー → 「🔍 拡大」</td></tr>
-    <tr><td>拡大解除</td><td><kbd>ESC</kbd> または「✕ 縮小」</td></tr>
-    <tr><td>図を編集</td><td>カードにホバー → 「✏️ 編集」</td></tr>
-    <tr><td>編集結果を保存</td><td>Drawio画面左上の保存ボタン（💾）← HTMLにも自動保存される</td></tr>
-    <tr><td>通常のHTML編集に戻す</td><td>タブを閉じて、HTMLファイルを通常の Open（ダブルクリック）で開き直す</td></tr>
+    <tr><td>Open preview (shortcut)</td><td><kbd>Ctrl+Shift+V</kbd> (Mac: <kbd>Cmd+Shift+V</kbd>)</td></tr>
+    <tr><td>Open preview (context menu)</td><td>Right-click in Explorer or on the editor tab → <strong>Drawio in HTML: Open Preview</strong></td></tr>
+    <tr><td>Open preview (Open With)</td><td>Right-click → Open With → Drawio HTML Editor</td></tr>
+    <tr><td>Toggle fullscreen</td><td>Hover a diagram → 🔍</td></tr>
+    <tr><td>Exit fullscreen</td><td><kbd>ESC</kbd> or ✕</td></tr>
+    <tr><td>Edit a diagram</td><td>Hover a diagram → ✏️</td></tr>
+    <tr><td>Save edits</td><td>Drawio's save button (💾) — the HTML file is updated on disk automatically</td></tr>
+    <tr><td>Back to plain HTML editing</td><td>Close the tab, then open the HTML file with the normal text editor</td></tr>
   </tbody>
 </table>
 
-<h3>デフォルトプレビューに設定する（任意）</h3>
+<h3>Make Drawio the default editor for <code>.html</code> (optional)</h3>
 
-<p>
-  ダブルクリックで常に Drawio プレビューで開きたい場合、VSCode の <code>settings.json</code> に下記を追加：
-</p>
+<p>To open every <code>.html</code> file with this preview on double-click, add the following to your VSCode <code>settings.json</code>:</p>
 
 <pre><code>"workbench.editorAssociations": {
   "*.html": "drawioInHtml.editor"
 }
 </code></pre>
 
-<p>元に戻したい時は同設定を削除するか、<code>"default"</code> に書き換え。</p>
+<p>Remove the entry (or set it to <code>"default"</code>) to undo.</p>
 
-<h3>テーマ（ダーク／ライト）</h3>
+<h3>Themes (dark / light)</h3>
 
 <ul>
-  <li>VSCode のテーマ設定に<strong>自動追従</strong></li>
-  <li>ユーザHTMLの <code>&lt;style&gt;</code> で <code>body { background: ... }</code> 等を明示している場合は、ユーザ指定が尊重される（強制上書きはしない）</li>
+  <li>The preview automatically follows the VSCode theme.</li>
+  <li>If the user HTML's <code>&lt;style&gt;</code> sets <code>body { background: ... }</code>, that value is preserved (no forced override).</li>
+  <li>The Drawio SVG also follows the theme: in dark mode the viewer is rendered with <code>dark-mode: true</code>.</li>
 </ul>
 
-<h2>アーキテクチャ概略</h2>
+<h2>Architecture</h2>
 
 <div class="callout">
-  <strong>このセクションは本拡張のショーケースを兼ねています</strong>
-  下の図は <code>&lt;script type="application/drawio+xml"&gt;</code> として README.html に直接埋め込まれています。本拡張で開いている方は、テキストフロー図の下に Drawio 図が描画されているはずです。
+  <strong>This section is also a live showcase of the extension.</strong>
+  The diagram below is embedded directly in README.html as
+  <code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code>.
+  If you opened this file with the extension, the Drawio diagram appears beneath the text flow.
 </div>
 
-<script type="application/drawio+xml" data-diagram-id="architecture">
+<script type="application/xml" data-drawio-id="architecture">
 <mxfile host="embed.diagrams.net">
-  <diagram id="readme-architecture" name="アーキテクチャ">
+  <diagram id="readme-architecture" name="Architecture">
     <mxGraphModel dx="900" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
-        <mxCell id="title" value="Drawio in HTML — 内部アーキテクチャ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="title" value="Drawio in HTML — internal architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="280" y="20" width="340" height="30" as="geometry" />
         </mxCell>
 
-        <mxCell id="preview" value="プレビュータブ&#10;Custom Text Editor&#10;&#10;・HTML本文をそのまま表示&#10;・Drawio script タグをインライン描画&#10;・「✏️編集」「🔍拡大」ボタン" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+        <mxCell id="preview" value="Preview tab&#10;Custom Text Editor&#10;&#10;- Renders the user HTML body&#10;- Inline Drawio rendering&#10;- ✏️ Edit / 🔍 Fullscreen overlay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
           <mxGeometry x="60" y="80" width="280" height="140" as="geometry" />
         </mxCell>
 
-        <mxCell id="editor" value="編集タブ&#10;WebviewPanel (ViewColumn.Beside)&#10;&#10;・embed.diagrams.net iframe&#10;・Drawio 公式エディタで編集&#10;・保存→XMLを拡張ホストへ送信" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+        <mxCell id="editor" value="Editor tab&#10;WebviewPanel (ViewColumn.Beside)&#10;&#10;- embed.diagrams.net iframe&#10;- Official Drawio editor&#10;- Save → forwards XML to host" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
           <mxGeometry x="60" y="260" width="280" height="130" as="geometry" />
         </mxCell>
 
-        <mxCell id="host" value="拡張ホスト (Node.js)&#10;&#10;・editorProvider.ts: プレビュー WebView 生成&#10;・previewHtmlBuilder.ts: HTML加工&#10;  (CSP注入・slot置換・相対URL変換)&#10;・editorPanelManager.ts: 編集タブ管理&#10;・htmlPatcher.ts: 保存往復の XML 差し替え" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+        <mxCell id="host" value="Extension host (Node.js)&#10;&#10;- editorProvider.ts: preview WebView&#10;- previewHtmlBuilder.ts: HTML rewriting&#10;  (CSP inject / slot replace / URL rewrite)&#10;- editorPanelManager.ts: edit tab lifecycle&#10;- htmlPatcher.ts: save-side XML replace" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
           <mxGeometry x="460" y="160" width="340" height="160" as="geometry" />
         </mxCell>
 
-        <mxCell id="htmlfile" value="HTML ファイル&#10;(単一ファイル完結)&#10;&#10;script タグの中に&#10;mxGraphModel XML を埋め込み" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF9B2;strokeColor=#000000;align=left;verticalAlign=top;fontSize=11;spacingTop=8;spacingLeft=10;size=14;" vertex="1" parent="1">
+        <mxCell id="htmlfile" value="HTML file&#10;(single-file delivery)&#10;&#10;mxGraphModel XML is embedded&#10;inside a &lt;script&gt; tag" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF9B2;strokeColor=#000000;align=left;verticalAlign=top;fontSize=11;spacingTop=8;spacingLeft=10;size=14;" vertex="1" parent="1">
           <mxGeometry x="560" y="380" width="320" height="100" as="geometry" />
         </mxCell>
 
-        <mxCell id="edge1" value="postMessage&#10;(openEditor 等)" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.3;align=center;" edge="1" parent="1" source="preview" target="host">
+        <mxCell id="edge1" value="postMessage&#10;(openEditor, ...)" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.3;align=center;" edge="1" parent="1" source="preview" target="host">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
@@ -303,112 +312,115 @@ npm run compile
 </script>
 
 <div class="flow">[VSCode]
- ├─ プレビュータブ（CustomTextEditor）           ← HTML本文+Drawioインライン表示
+ ├─ Preview tab (CustomTextEditor)          ← HTML body + inline Drawio
  │   └─ Webview "preview"
- │        ├─ ユーザのHTML本文をベースにレンダリング（&lt;head&gt;/&lt;body&gt; 保持）
- │        ├─ &lt;meta CSP&gt;、preview.css、viewer-static.min.js、preview.js を注入
- │        ├─ &lt;script type="application/drawio+xml"&gt; を &lt;div class="drawio-slot"&gt; に置換
- │        ├─ 相対パスの &lt;img&gt;、&lt;link&gt;、&lt;a&gt; 等を webview.asWebviewUri() で自動変換
- │        └─ slot 内に viewer SVG を生成 / ホバー時オーバーレイ「拡大」「編集」
- │              └─ クリック → 拡張本体へ postMessage
+ │        ├─ Renders the user's HTML body verbatim (&lt;head&gt;/&lt;body&gt; preserved)
+ │        ├─ Injects &lt;meta CSP&gt;, preview.css, viewer-static.min.js, preview.js
+ │        ├─ Replaces &lt;script type="application/xml" data-drawio-id="..."&gt; with &lt;div class="drawio-slot"&gt;
+ │        ├─ Rewrites relative URLs (img/link/a/...) via webview.asWebviewUri()
+ │        └─ Renders viewer SVG in each slot; overlay icons on hover
+ │              └─ Click → postMessage to extension host
  │
- └─ 編集タブ（WebviewPanel, ViewColumn.Beside）  ← 1図1タブ
+ └─ Editor tab (WebviewPanel, ViewColumn.Beside)  ← one tab per diagram
      └─ Webview "editor"
-          └─ embed.diagrams.net iframe で Drawio 公式エディタ
-                └─ 保存時に postMessage で XML を拡張本体へ送る
-                      └─ 拡張本体 (htmlPatcher) が &lt;script&gt; の中身を書き換え
-                            └─ doc.save() でディスクへ自動保存</div>
+          └─ embed.diagrams.net iframe (official Drawio)
+                └─ Save event → postMessage XML to host
+                      └─ htmlPatcher rewrites the matching &lt;script&gt;
+                            └─ doc.save() persists to disk</div>
 
-<h2>ファイル構成</h2>
+<h2>File layout</h2>
 
 <table>
   <thead>
-    <tr><th>パス</th><th>役割</th></tr>
+    <tr><th>Path</th><th>Purpose</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>src/extension.ts</code></td><td>拡張のエントリポイント</td></tr>
-    <tr><td><code>src/editorProvider.ts</code></td><td>プレビュー用 CustomTextEditorProvider</td></tr>
-    <tr><td><code>src/previewHtmlBuilder.ts</code></td><td>ユーザHTMLにCSP/JS注入、Drawio script の slot 化、相対URL変換（純粋関数）</td></tr>
-    <tr><td><code>src/editorPanelManager.ts</code></td><td>編集タブのライフサイクル管理</td></tr>
-    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の <code>&lt;script&gt;</code> 抽出・置換（保存往復用、純粋関数）</td></tr>
-    <tr><td><code>media/preview.js</code> / <code>preview.css</code></td><td>プレビュー側WebView（slot 内 SVG 描画、ホバー、拡大）</td></tr>
-    <tr><td><code>media/editor.js</code> / <code>editor.css</code></td><td>編集タブ側WebView（Drawioエディタとブリッジ）</td></tr>
-    <tr><td><code>media/viewer-static.min.js</code></td><td>Drawio公式ビューアー（postinstallで自動取得）</td></tr>
-    <tr><td><code>scripts/fetch-viewer.js</code></td><td>viewer-static.min.js を取得するスクリプト</td></tr>
-    <tr><td><code>sample/demo.html</code></td><td>動作確認用サンプル</td></tr>
+    <tr><td><code>src/extension.ts</code></td><td>Extension entry point</td></tr>
+    <tr><td><code>src/editorProvider.ts</code></td><td>Preview-side CustomTextEditorProvider</td></tr>
+    <tr><td><code>src/previewHtmlBuilder.ts</code></td><td>Inject CSP/JS into user HTML, replace Drawio scripts with slots, rewrite relative URLs (pure function)</td></tr>
+    <tr><td><code>src/editorPanelManager.ts</code></td><td>Lifecycle of editor side tabs</td></tr>
+    <tr><td><code>src/htmlPatcher.ts</code></td><td>Extract/replace <code>&lt;script&gt;</code> bodies in HTML (pure function, used during save)</td></tr>
+    <tr><td><code>media/preview.js</code> / <code>preview.css</code></td><td>Preview-side WebView (slot SVG rendering, hover overlay, fullscreen)</td></tr>
+    <tr><td><code>media/editor.js</code> / <code>editor.css</code></td><td>Editor-side WebView (bridges to embed.diagrams.net)</td></tr>
+    <tr><td><code>media/viewer-static.min.js</code></td><td>Official Drawio viewer (downloaded by postinstall)</td></tr>
+    <tr><td><code>scripts/fetch-viewer.js</code></td><td>Downloads viewer-static.min.js</td></tr>
+    <tr><td><code>sample/demo.html</code></td><td>Sample document</td></tr>
   </tbody>
 </table>
 
-<h2>トラブルシューティング</h2>
+<h2>Troubleshooting</h2>
 
-<h3>Drawio 図が真っ白になる</h3>
+<h3>A Drawio diagram is blank</h3>
 <ul>
-  <li>viewer-static.min.js が読み込まれていない可能性。<code>npm install</code> を再実行して <code>media/viewer-static.min.js</code> の存在を確認</li>
-  <li>Output panel → "Drawio HTML" にエラーが出ていないか確認</li>
+  <li><code>viewer-static.min.js</code> may not have been downloaded. Re-run <code>npm install</code> and confirm <code>media/viewer-static.min.js</code> exists.</li>
+  <li>Check <strong>Output panel → "Drawio HTML"</strong> for error messages.</li>
 </ul>
 
-<h3>「Open With」に Drawio HTML Editor が出てこない</h3>
+<h3>"Open With" does not list "Drawio HTML Editor"</h3>
 <ul>
-  <li>通常のHTML扱いのまま開かれている可能性。<kbd>Ctrl+Shift+P</kbd> → <code>Reopen Editor With...</code> でも切替可能</li>
-  <li>拡張機能がインストールされていない／無効化されているか確認</li>
+  <li>The file may have been opened with the default editor. Use <kbd>Ctrl+Shift+P</kbd> → <code>Reopen Editor With...</code> to switch.</li>
+  <li>Confirm that the extension is installed and enabled.</li>
 </ul>
 
-<h3>編集タブの Drawio が表示されない</h3>
+<h3>The Drawio editor side tab is blank</h3>
 <ul>
-  <li>ネット接続を確認（編集タブは <code>embed.diagrams.net</code> をオンライン読み込み）</li>
-  <li>企業プロキシ環境ではブロックされる可能性あり</li>
+  <li>Check your internet connection — the editor loads <code>embed.diagrams.net</code> online.</li>
+  <li>Corporate proxies may block this; ask your admin to allow <code>embed.diagrams.net</code>.</li>
 </ul>
 
-<h3>編集後にHTML側が dirty マークになるが内容は反映されている</h3>
+<h3>The HTML tab shows the "dirty" indicator after saving from Drawio</h3>
 <ul>
-  <li>自動保存が走っているはずだが、まれに失敗時はOutput panelに警告が出る</li>
-  <li>手動で <kbd>Ctrl+S</kbd> を押せば確実に永続化</li>
+  <li>Auto-save should fire, but transient failures are logged in the Output panel.</li>
+  <li>A manual <kbd>Ctrl+S</kbd> always reliably persists the file.</li>
 </ul>
 
-<h2>制約</h2>
+<h2>Limitations</h2>
 
 <ul>
-  <li>編集対象は <code>data-diagram-id</code> 属性を持つ <code>&lt;script type="application/drawio+xml"&gt;</code> のみ</li>
-  <li>1つのHTML内で <code>data-diagram-id</code> は一意であること</li>
-  <li>編集機能はネット必須（Drawio エディタ本体は本家オンライン版を利用）</li>
+  <li>The editor recognizes <code>&lt;script type="application/xml" data-drawio-id="X"&gt;</code> (recommended),
+    <code>&lt;script type="application/xml" id="X"&gt;</code> whose body starts with <code>&lt;mxfile&gt;</code>/<code>&lt;mxGraphModel&gt;</code>,
+    and <code>&lt;script type="application/drawio+xml" data-diagram-id="X"&gt;</code> (legacy).</li>
+  <li>Identifiers must be unique within a single HTML file.</li>
+  <li>Editing requires an internet connection (the editor itself is <code>embed.diagrams.net</code>).</li>
 </ul>
 
-<h2>⚠️ セキュリティに関する注意</h2>
+<h2>⚠️ Security notice</h2>
 
 <p>
-  <strong>v0.2.3 以降</strong>：このプレビューは HTML の中に書かれた <strong>JavaScript をそのまま実行します</strong>。Mermaid や Drawio などを CDN 経由で使えるようにするための仕様です。
+  Starting in <strong>v0.2.3</strong>, the preview <strong>runs JavaScript that is written inside the HTML</strong>.
+  This is required so that user-side libraries (Mermaid, Drawio, etc.) loaded from CDNs can run.
 </p>
 
-<p>
-  これは便利な反面、<strong>他人が作ったHTMLや、ネットで拾ったHTML</strong> をプレビューで開くと、その中の JavaScript が動いて以下のような望ましくない動作が起きる可能性があります：
-</p>
+<p>That convenience has a trade-off: if you open someone else's HTML — or any HTML you found on the web — its scripts will run inside the preview and could:</p>
 
 <ul>
-  <li>知らないサイトに勝手にアクセスする</li>
-  <li>個人情報を外部に送信する</li>
-  <li>ブラウザ操作を乗っ取る（XSS と呼ばれる類の挙動）</li>
+  <li>Make outbound requests to arbitrary sites</li>
+  <li>Send local data to external endpoints</li>
+  <li>Hijack DOM behavior (the XSS class of attack)</li>
 </ul>
 
-<h3>安全に使うために</h3>
+<h3>To stay safe</h3>
 
 <ul>
-  <li><strong>自分で書いたHTMLのみ</strong>プレビューで開く</li>
-  <li>信頼できない他人のHTMLは、<strong>通常のテキストエディタ</strong>で中身を確認してから開く</li>
+  <li>Only open <strong>HTML you wrote yourself</strong> in this preview.</li>
+  <li>For HTML from untrusted sources, <strong>inspect the source first</strong> in the normal text editor before previewing.</li>
 </ul>
 
 <div class="callout warn">
-  <strong>原則</strong>：一般のブラウザで HTML を開くのと同じレベルのリスクがあると考えてください。VSCode のプレビューだから安全、ということはありません。
+  <strong>Rule of thumb:</strong> treat this preview as if you were opening the HTML in a regular browser.
+  There is no extra sandbox just because it is in VSCode.
 </div>
 
-<h2>ライセンス・クレジット</h2>
+<h2>License &amp; credits</h2>
 
 <ul>
-  <li>内部で利用している <code>viewer-static.min.js</code> は <a href="https://github.com/jgraph/drawio">drawio (jgraph/drawio)</a> のもの</li>
-  <li>編集機能は <a href="https://embed.diagrams.net/">embed.diagrams.net</a> を iframe で利用</li>
+  <li>The bundled <code>viewer-static.min.js</code> ships from <a href="https://github.com/jgraph/drawio">drawio (jgraph/drawio)</a>.</li>
+  <li>Editing uses <a href="https://embed.diagrams.net/">embed.diagrams.net</a> inside an iframe.</li>
+  <li>Source code is MIT licensed — see <a href="./LICENSE">LICENSE</a>.</li>
 </ul>
 
 <footer>
-  Drawio in HTML — VSCode 拡張機能
+  Drawio in HTML — VSCode extension
 </footer>
 
 </body>

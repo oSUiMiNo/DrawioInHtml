@@ -1,137 +1,142 @@
 # Changelog
 
-本拡張機能のすべての注目すべき変更はこのファイルに記録される。
-フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に準拠する。
+All notable changes to this extension are documented here.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [0.4.0] - 2026-05-18
+
+### Changed
+- **Internationalized for a global audience.** README is now English-first, with a Japanese version available as `README.ja.md` / `README.ja.html`. All in-product strings (button tooltips, status messages, panel titles, warning banner) are now in English.
+- **Icon-only overlay buttons.** The hover overlay now shows just 🔍 (toggle fullscreen) and ✏️ (edit) — the prior `🔍 拡大` / `✏️ 編集` text has been removed. `aria-label` attributes provide accessible names.
+- Extension `description` and command `title` in `package.json` are now in English.
+
+### Notes
+- No functional behavior changes beyond the strings and labels.
 
 ## [0.3.6] - 2026-05-18
 
 ### Added
-- **Drawio描画のダークテーマ追従**：VSCode がダークテーマ（または OS の `prefers-color-scheme: dark`）のとき、Drawio viewer に `dark-mode: true` を渡して SVG 内部の白背景もダーク化。周囲のユーザHTML本文（ダーク背景）と一体感が出る
+- **Drawio render follows the dark theme.** When VSCode (or `prefers-color-scheme`) is dark, the viewer is invoked with `dark-mode: true`, so the SVG background also turns dark.
 
 ### Changed
-- `media/preview.css` の `.drawio-slot` 背景を `white` → `transparent` に変更。ユーザHTML本文の背景（VSCode テーマ追従またはユーザ `<style>` 指定）にスロット枠が溶け込むようになった
-- `.drawio-empty`（空図プレースホルダ）と `.drawio-fullscreen`（拡大表示）の背景も透過/テーマ追従に変更。ダークモード時に白い箱が浮かない
+- `media/preview.css`: `.drawio-slot` background changed from `white` to `transparent`. The slot now blends into the user's HTML body (which follows the VSCode theme by default, or honors a user-specified `<style>`).
+- The empty-diagram placeholder and the fullscreen background were updated likewise (transparent / `var(--vscode-editor-background)`), so the slot does not flash white in dark mode.
 
 ## [0.3.5] - 2026-05-18
 
 ### Reverted
-- v0.3.4 で `auto-crop: false` に変更した修正を取り消し（`auto-crop: true` に戻す）。確認ミスで実際はv0.3.3 の時点でエッジラベル問題は出ていなかった。`auto-crop: false` だとページ寸法ベースになり、要素が少ない図で余白だらけになる副作用があるため戻す
+- Reverted the v0.3.4 change that set `auto-crop: false`. The earlier edge-label regression was a misidentification — v0.3.3 was actually fine. `auto-crop: false` had a real downside: it falls back to the page dimensions, producing huge whitespace for small diagrams.
 
 ## [0.3.4] - 2026-05-18
 
 ### Fixed
-- **エッジラベルが要素に重なる問題**：`auto-crop: true` で要素bboxにきつく crop していたため、エッジ（矢印）のラベルがbbox外に押し出されて要素本体の上に重なって表示されていた。`auto-crop: false` に変更し、ページ寸法ベースの表示に切り替え。エッジラベルが正しく要素間に配置される
+- **Edge labels overlapping nodes:** with `auto-crop: true` the viewer cropped to the element bbox, pushing edge labels outside the bbox so they overlapped element bodies. Switched to `auto-crop: false` (page-size based) so edge labels stay between elements.
 
 ## [0.3.3] - 2026-05-18
 
 ### Fixed
-- **viewer-static.min.js の二重ロード問題**：ユーザHTML が CDN（`<script src="https://viewer.diagrams.net/...">` 等）から viewer をロードしていると、拡張同梱版と二重に動作して `processElements` が競合し、図が小さくしか描画されない／編集ボタンが出ない症状が起きていた。プレビュー時にユーザHTML 内の `viewer-static.min.js` を読む `<script src>` を DOM から削除して回避（ソースHTMLは無変更）
-- **CSS 分離の堅牢化**：v0.3.2 の `display: revert !important` トリックが一部 Chromium 環境で期待通り動かないケースに対応。preview.js が生成する拡張描画 `<div class="mxgraph">` に専用クラス `drawio-rendered` を付与し、CSS を `.mxgraph:not(.drawio-rendered) { display: none !important; }` に変更して厳密に分離
+- **Double-load of viewer-static.min.js:** when the user HTML already loaded the viewer from a CDN, the bundled copy and the CDN copy raced in `processElements`, leaving the diagram tiny and dropping the edit overlay. The preview now strips any `<script src=".../viewer-static.min.js">` from the user DOM (the source HTML is left untouched).
+- **More robust CSS isolation:** the v0.3.2 `display: revert !important` trick did not work consistently across all Chromium builds. `preview.js` now adds a dedicated `drawio-rendered` class to its render target, and the injected CSS uses `.mxgraph:not(.drawio-rendered) { display: none !important; }` for strict separation.
 
 ### Compatibility
-- `Test.html` のような「CDN viewer ロード + 自前 mountDrawio + `<script type="application/xml" id="X">`」パターンが**書き換え不要で**拡張のリッチ描画＋編集ボタン込みで動くようになった
+- "Self-mount" patterns like `Test.html` (CDN viewer + user `mountDrawio` + `<script type="application/xml" id="X">`) now work **without any HTML edits**, with the extension providing rich rendering and the edit overlay.
 
 ## [0.3.2] - 2026-05-18
 
 ### Added
-- **id 属性ベースの認識**：`<script type="application/xml" id="X">` 形式（自前 mount JS で id 経由で読み出す一般的な書き方）でも、中身が `<mxfile>` または `<mxGraphModel>` で始まる場合は Drawio として認識し、拡張のリッチ描画＋編集機能を提供
-- ユーザ自前の `<div class="mxgraph">` / `<div class="drawio-host">` を非表示にする CSS を再導入。スコープを `.drawio-slot` 内は除外する形に厳密化したため、拡張描画の slot 内 mxgraph は表示される
+- **Recognize `id`-only markers:** `<script type="application/xml" id="X">` whose body starts with `<mxfile>` or `<mxGraphModel>` is now treated as Drawio, so the extension's rich rendering and edit overlay apply.
+- Re-introduced CSS that hides the user's own `<div class="mxgraph">` / `<div class="drawio-host">`, but scoped strictly so `.drawio-slot` contents are not affected.
 
 ### Fixed
-- v0.3.1 で問題報告：「Test.html のような id 属性ベースの一般的な書き方」が拡張に認識されず、ユーザ自前の通常描画だけ動いてリッチ機能が活かされない不具合を解消
+- v0.3.1 regression: the generic "self-mount" pattern (id attribute, no extension-specific marker) was not recognized by the extension, so only the user's own render path ran and rich features were lost.
 
 ### Compatibility
-- これでユーザは以下3パターンのどれを書いても拡張のリッチ描画＋編集が動く：
-  - `<script type="application/xml" data-drawio-id="X">XML</script>` （v0.3 推奨）
-  - `<script type="application/xml" id="X">XML</script>` （自前 mount JS パターン、中身が mxfile/mxGraphModel）
-  - `<script type="application/drawio+xml" data-diagram-id="X">XML</script>` （v0.2.x 旧）
+- All three of the following are now first-class:
+  - `<script type="application/xml" data-drawio-id="X">XML</script>` (v0.3 recommended)
+  - `<script type="application/xml" id="X">XML</script>` (generic self-mount, body must look like Drawio)
+  - `<script type="application/drawio+xml" data-diagram-id="X">XML</script>` (v0.2.x legacy)
 
 ## [0.3.1] - 2026-05-18
 
 ### Fixed
-- v0.3.0 で導入した「ユーザ自前 `<div class="mxgraph">` を非表示にする CSS」が、**拡張描画の slot 内に preview.js が動的に生成する `<div class="mxgraph">` まで隠してしまう**バグを修正。結果として「描画が極端に小さい」「編集ボタンが表示されない」現象が起きていた
-- CSS 注入ロジックを削除（ユーザは「自前描画と併記する複雑なパターン」を書く必要はなく、新マーカーだけ書けば拡張が描画＋編集を全部やる、というシンプル仕様に統一）
-- `sample/portable-example.html` をシンプルなマーカーだけのサンプルに書き直し
+- v0.3.0 introduced a CSS rule that hid user-owned `<div class="mxgraph">` — but it also hit the `<div class="mxgraph">` that `preview.js` creates inside its slots, causing "diagram is tiny / no edit button". The hiding CSS was removed; the extension always provides the rendering, so users no longer need to write a parallel self-mount path.
+- `sample/portable-example.html` simplified to the marker-only pattern.
 
 ## [0.3.0] - 2026-05-18
 
 ### Added
-- **新マーカー `<script type="application/xml" data-drawio-id="X">XML</script>` 採用**：HTML標準の type 値を使うのでブラウザで安全に無視される。ユーザは「ブラウザでも見える書き方」（自前 CDN viewer + mxgraph div）と併用できる
-- **ユーザ自前 `<div class="mxgraph">` の自動非表示**：拡張で開いた時はリッチ描画と二重表示にならないよう、ユーザの自前描画 div を自動で隠す CSS を注入
-- 新サンプル `sample/portable-example.html`：ブラウザ直接表示でも図が見えるパターンの実例
+- **New marker `<script type="application/xml" data-drawio-id="X">XML</script>`.** Uses a standards-compliant HTML type that browsers safely ignore, so users can combine it with a regular CDN viewer pattern.
+- **Auto-hide of user-owned `<div class="mxgraph">`** in the extension, so opening with the preview shows only the rich render (no double render).
+- New sample `sample/portable-example.html` demonstrating the dual-mode pattern.
 
 ### Changed
-- `htmlPatcher.extractDrawioBlocks` が新旧両マーカーを返すように拡張。`DrawioBlock.marker: 'new' | 'old'` で識別
-- `replaceDrawioXml` が新マーカー（application/xml + data-drawio-id）と旧マーカー（application/drawio+xml + data-diagram-id）の両方に対応
+- `htmlPatcher.extractDrawioBlocks` returns both new and legacy markers, distinguished by `DrawioBlock.marker: 'new' | 'old'`.
+- `replaceDrawioXml` accepts both marker forms.
 
 ### Compatibility
-- 旧マーカー（v0.2.x で使っていた `application/drawio+xml + data-diagram-id`）は引き続き**描画＋編集ともサポート**。破壊的変更なし
+- The legacy marker (`application/drawio+xml` + `data-diagram-id`) keeps full render-and-edit support. No breaking changes.
 
 ## [0.2.3] - 2026-05-18
 
 ### Added
-- **インラインスクリプト・外部CDNスクリプトの実行を許可**（CSP緩和）。これにより HTML内に Mermaid 等のCDN呼び出しや `<script>...</script>` の初期化コードを書いた場合、プレビューで動作するようになった
-- 外部スタイルシート (`<link rel="stylesheet" href="...">`) も読み込み可能に
+- **Allow inline scripts and external CDN scripts** (CSP relaxed). Mermaid and other CDN-loaded libraries inside the HTML now run during preview.
+- External stylesheets (`<link rel="stylesheet" href="...">`) are now loaded too.
 
 ### Changed
-- CSP に `'unsafe-inline'` と `https:` を追加。nonce 指定は撤去（'unsafe-inline' と nonce が共存すると nonce 優先になる CSP3 仕様のため、ユーザのインラインスクリプトを動かすには nonce 廃止が必要）
-- 「インラインスクリプトはCSPで動かない」「外部CSSは読み込めない」の警告バナーを廃止
+- CSP gains `'unsafe-inline'` and `https:`. The nonce attribute was dropped on purpose (per CSP3, nonce + `'unsafe-inline'` makes nonce win, blocking user inline scripts).
+- The "inline scripts won't run" / "external CSS won't load" warning banner was removed.
 
 ### Security
-- ⚠️ **トレードオフ**：プレビューで開いたHTML内の JavaScript が**そのまま実行される**ようになりました。信頼できないHTML（拾い物・他人作）を開くと、その中の JS が任意の動作（外部送信・改ざん等）をしうるリスクがあります。**自分で書いた／信頼できるHTMLのみ**プレビューで開いてください。READMEのセキュリティセクション参照
+- ⚠️ **Trade-off:** JavaScript inside the previewed HTML now **runs as-is**. Untrusted HTML (from the web, from third parties) can execute arbitrary client-side behavior (exfiltration, DOM hijack, etc.). **Only preview HTML you wrote yourself or trust.** See the Security notice in the README.
 
 ## [0.2.2] - 2026-05-18
 
 ### Added
-- **テーマ追従**：プレビューがVSCodeのダーク／ライトテーマに自動追従。ユーザHTML側で `body { background: ... }` 等を明示している場合はそれを尊重（強制上書きしない）
-- **`<meta name="color-scheme">` 自動付与**：ユーザHTMLに未指定の場合のみ `light dark` を自動付与（スクロールバー・フォーム要素もテーマ追従）
-- **コマンド `drawioInHtml.openPreview`**：エクスプローラ右クリック、エディタタブ右クリック、コマンドパレット、`Ctrl+Shift+V`（Mac: `Cmd+Shift+V`）から1クリックでプレビュー起動
-- **デフォルトプレビュー化の手段**：VSCode 標準の `workbench.editorAssociations` 設定で `.html` のデフォルトを Drawio HTML Editor にできる（README に手順記載）
+- **Theme follow-through:** the preview automatically follows the VSCode dark/light theme. If the user HTML explicitly sets `body { background: ... }`, that value is preserved (no forced override).
+- **Auto-add `<meta name="color-scheme">`** when missing (so scrollbars and form controls follow the theme).
+- **Command `drawioInHtml.openPreview`:** one-click open from Explorer context menu, editor tab context menu, command palette, or `Ctrl+Shift+V` (Mac: `Cmd+Shift+V`).
+- **Default-editor path:** VSCode's `workbench.editorAssociations` can be used to make `.html` open by default in Drawio HTML Editor (documented in the README).
 
 ### Changed
-- `previewHtmlBuilder`：preview.css の挿入位置をCSP直後（ユーザ `<style>` より前）に変更。これによりユーザCSSが後勝ちで尊重される
+- `previewHtmlBuilder` injects `preview.css` immediately after the CSP meta (before the user's `<style>`), so user CSS wins at equal specificity.
 
 ## [0.2.1] - 2026-05-18
 
 ### Fixed
-- `<script type="application/drawio+xml">` の中身に HTML エンティティ（`&lt;`、`&quot;`、`&gt;` 等）を含むXMLを編集タブで開くと「図面ファイルではありません (Unescaped '<' not allowed in attributes values)」エラーで開けなかった問題を修正。
-  原因：`htmlPatcher.extractDrawioBlocks` が `node-html-parser` の `el.text` でXMLを取得しており、これが HTML エンティティをデコードしてしまうため、`value="...&lt;script&gt;..."` のような属性値が `value="...<script>..."` に化けて Drawio 側の XML パースで失敗していた。`el.text` → `el.rawText` に置換して生の文字列を保持するようにした。
+- Opening a `<script type="application/drawio+xml">` whose XML contains HTML entities (`&lt;`, `&quot;`, `&gt;`, ...) failed with "Unescaped '<' not allowed in attribute values" in the editor tab.
+  Root cause: `htmlPatcher.extractDrawioBlocks` read XML via `node-html-parser`'s `el.text`, which decodes HTML entities, so values like `value="...&lt;script&gt;..."` arrived at Drawio's XML parser as `value="...<script>..."`. Switched to `el.rawText` to preserve the original string.
 
 ## [0.2.0] - 2026-05-18
 
 ### Added
-- **HTML本文プレビュー対応**：ユーザのHTMLの中身（見出し、段落、表、画像、リンク等）を WebView でそのままプレビュー表示し、その中の `<script type="application/drawio+xml">` を**元の位置にインラインで Drawio SVG として描画**するように変更。Markdown プレビューと似た感覚で、HTML本文と Drawio図が共存表示される
-- **相対パス画像の表示**：`<img src="./icon.png">` 等の相対URL を `webview.asWebviewUri()` で自動変換するため、ドキュメントと同じフォルダ内の画像が表示可能になった
-- **不可能な機能の警告バナー**：ユーザHTMLにインラインスクリプトや外部CSSが含まれている場合、本文先頭に黄色い警告バナーを表示
-- 新規ファイル `src/previewHtmlBuilder.ts`：HTMLパース・CSP注入・slot置換・相対URL変換を純粋関数として切り出し
+- **HTML body preview.** The user's HTML body (headings, paragraphs, tables, images, links) is rendered as-is in the WebView, with embedded `<script type="application/drawio+xml">` rendered **inline at the original location** as Drawio SVG. Same idea as Markdown preview, but for HTML.
+- **Relative-path images.** `<img src="./icon.png">` etc. are auto-rewritten via `webview.asWebviewUri()`, so same-folder images render.
+- **Warning banner** for unsupported features (inline scripts, external CSS).
+- New `src/previewHtmlBuilder.ts`: HTML parse / CSP inject / slot replacement / relative-URL rewrite (pure function).
 
 ### Changed
-- プレビューWebViewの基本動作が「Drawio図だけ並べる」から「HTML本文をそのまま表示 + Drawio図をインライン化」に変更
-- `media/preview.css` の `html/body` 全体スタイル削除（ユーザHTMLの見た目を尊重）。スタイルは `.drawio-slot` 配下にスコープ限定
-- `media/preview.js` を `.drawio-slot` ベースに書き換え（`#diagrams` 固定スロット廃止）
+- Preview WebView no longer shows "just the diagrams" — it shows the full HTML body with inline Drawio.
+- `media/preview.css`: removed global `html/body` styles (so user HTML look is preserved), scope reduced to `.drawio-slot`.
+- `media/preview.js` reworked around `.drawio-slot` (the fixed `#diagrams` slot is gone).
 
 ### Limitations
-- ユーザHTML内のインライン `<script>...</script>` および外部 `<script src>` は CSP の制約で実行されません
-- ユーザHTML内の外部 `<link rel="stylesheet">` も同様に読み込まれません
-- スタイルは `<style>...</style>` インラインで HTML 内に記述してください
+- User inline `<script>...</script>` and external `<script src>` do not run because of CSP. (Lifted in v0.2.3.)
+- External `<link rel="stylesheet">` does not load. (Lifted in v0.2.3.)
+- Use inline `<style>...</style>` instead.
 
 ## [0.1.1] - 2026-05-18
 
 ### Fixed
-- 拡張機能の activate に失敗していた問題を修正（`Cannot find module 'he'`）。
-  `.vscodeignore` で `node_modules/**` を全除外していたため、`node-html-parser` の
-  推移的依存である `he`、`css-select`、`entities` 等が VSIX に同梱されず、
-  `node-html-parser` の require が失敗してプロバイダがロードされなかった。
-  `vsce` のデフォルト挙動（`npm list --production` での自動同梱）に任せるよう修正。
+- Fixed extension activation failure (`Cannot find module 'he'`). `.vscodeignore` had excluded all of `node_modules/**`, so transitive deps of `node-html-parser` (`he`, `css-select`, `entities`, ...) were not bundled. Switched to the `vsce` default behavior (`npm list --production`-based bundling).
 
 ## [0.1.0] - 2026-05-18
 
 ### Added
-- 初期リリース。
-- HTMLファイル内に `<script type="application/drawio+xml" data-diagram-id="...">XML</script>` 形式で埋め込まれた Drawio 図を、VSCode 上で静的 SVG として閲覧できる Custom Text Editor を提供。
-- 各図カードに「✏️ 編集」ボタン。クリックで別タブに Drawio 公式エディタ（`embed.diagrams.net`）を開く。
-- Drawio エディタで保存すると、元の HTML の該当 `<script>` の中身だけを書き換えてディスクに自動保存。
-- 「🔍 拡大」ボタンによる図のフルスクリーン表示。
-- 1つの HTML 内に複数の Drawio 図を埋め込み可能、それぞれ独立に編集可。
-- `data-diagram-id` 欠落時の赤帯警告。
-- ResizeObserver による container 幅変動への自動追随。
+- Initial release.
+- Custom Text Editor: reads HTML files and renders each `<script type="application/drawio+xml" data-diagram-id="...">XML</script>` as a static SVG inside VSCode.
+- Per-diagram **✏️ Edit** button. Click opens the official Drawio editor (`embed.diagrams.net`) in a side tab.
+- On save in the editor, the matching `<script>` body is rewritten and the HTML file is auto-saved.
+- **🔍 Fullscreen** button per diagram.
+- Multiple diagrams per HTML supported; each editable independently.
+- Red banner warning for `<script type="application/drawio+xml">` without `data-diagram-id`.
+- `ResizeObserver` re-renders on container width changes.
