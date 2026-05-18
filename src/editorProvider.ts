@@ -55,7 +55,7 @@ export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider
       ],
     };
 
-    // 現在の diagramId の集合（順序保持）
+    // Current set of diagramIds (order preserved).
     let lastDiagramIds: string[] = [];
 
     const rebuildHtml = (): string => {
@@ -82,9 +82,9 @@ export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider
       webviewPanel.webview.postMessage(msg);
     };
 
-    // ドキュメント変更検知
-    // - diagramId 集合が変わった場合のみ webview.html を再構築（高コスト、debounce 300ms）
-    // - 変わっていなければ XML 差分だけ postMessage で送る（cheap）
+    // Document change handling:
+    // - rebuild webview.html only when the set of diagramIds changes (expensive, debounce 300 ms)
+    // - otherwise just send the XML delta via postMessage (cheap)
     let rebuildTimer: NodeJS.Timeout | undefined;
     const changeSub = vscode.workspace.onDidChangeTextDocument((e) => {
       if (e.document.uri.toString() !== document.uri.toString()) {
@@ -97,13 +97,13 @@ export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider
         currentIds.some((id, i) => id !== lastDiagramIds[i]);
 
       if (idsChanged) {
-        // slot 構造が変わった → HTML 再構築
+        // Slot structure changed -> rebuild HTML.
         if (rebuildTimer) clearTimeout(rebuildTimer);
         rebuildTimer = setTimeout(() => {
           webviewPanel.webview.html = rebuildHtml();
         }, 300);
       } else {
-        // XML 差分だけ
+        // XML delta only.
         sendBlocks();
       }
     });

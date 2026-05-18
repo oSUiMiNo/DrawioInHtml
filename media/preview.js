@@ -16,7 +16,7 @@
     );
   });
   if (typeof window.GraphViewer === 'undefined') {
-    log('error', 'viewer-static.min.js が読み込まれていません');
+    log('error', 'viewer-static.min.js was not loaded');
   }
 
   // diagramId -> { slot, mxgraphDiv, xml, zoomBtn }
@@ -38,15 +38,15 @@
   }
 
   function setupSlot(slot, diagramId) {
-    // slot 自体に position:relative を保証
+    // Make sure the slot itself is position:relative.
     slot.style.position = slot.style.position || 'relative';
 
-    // viewer 描画先 div
+    // Viewer render target.
     const mxgraphDiv = document.createElement('div');
     mxgraphDiv.className = 'drawio-slot-host';
     slot.appendChild(mxgraphDiv);
 
-    // オーバーレイ（タイトル + 拡大 + 編集）
+    // Overlay (title + zoom + edit).
     const overlay = document.createElement('div');
     overlay.className = 'drawio-overlay';
 
@@ -57,13 +57,16 @@
 
     const zoomBtn = document.createElement('button');
     zoomBtn.className = 'drawio-overlay-button';
-    zoomBtn.textContent = '🔍 拡大';
-    zoomBtn.title = '拡大表示／縮小';
+    zoomBtn.textContent = '🔍';
+    zoomBtn.title = 'Toggle fullscreen';
+    zoomBtn.setAttribute('aria-label', 'Toggle fullscreen');
     zoomBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
       const isOn = slot.classList.toggle('drawio-fullscreen');
-      zoomBtn.textContent = isOn ? '✕ 縮小' : '🔍 拡大';
+      zoomBtn.textContent = isOn ? '✕' : '🔍';
+      zoomBtn.title = isOn ? 'Exit fullscreen' : 'Toggle fullscreen';
+      zoomBtn.setAttribute('aria-label', zoomBtn.title);
       document.body.classList.toggle('drawio-has-fullscreen', isOn);
       mxgraphDiv.style.height = isOn ? '100vh' : '';
       const entry = slots.get(diagramId);
@@ -75,8 +78,9 @@
 
     const editBtn = document.createElement('button');
     editBtn.className = 'drawio-overlay-button';
-    editBtn.textContent = '✏️ 編集';
-    editBtn.title = '別タブで編集';
+    editBtn.textContent = '✏️';
+    editBtn.title = 'Edit in a side tab';
+    editBtn.setAttribute('aria-label', 'Edit in a side tab');
     editBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
@@ -89,7 +93,7 @@
     const entry = { slot, mxgraphDiv, xml: '', zoomBtn, resizeTimer: null };
     slots.set(diagramId, entry);
 
-    // ResizeObserver で container 幅変化に追随
+    // ResizeObserver — react to container width changes.
     let lastW = mxgraphDiv.clientWidth;
     let lastH = mxgraphDiv.clientHeight;
     const ro = new ResizeObserver(() => {
@@ -110,9 +114,9 @@
     ro.observe(mxgraphDiv);
   }
 
-  // ダークモード判定：
-  // - ユーザHTMLが <body style="background:..."> 等で明示していない場合は VSCode テーマに追従
-  // - 既に prefers-color-scheme: dark なら viewer の SVG もダーク（白背景を消す）
+  // Dark mode detection:
+  // - When the user HTML did not set a background, the WebView already follows the VSCode theme.
+  // - If prefers-color-scheme: dark, pass dark-mode to the viewer so the SVG background turns dark too.
   function isDarkMode() {
     try {
       return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -126,14 +130,14 @@
     if (!xml || !xml.trim()) {
       const empty = document.createElement('div');
       empty.className = 'drawio-empty';
-      empty.textContent = '（空の図）';
+      empty.textContent = '(empty diagram)';
       entry.mxgraphDiv.appendChild(empty);
       return;
     }
     const div = document.createElement('div');
-    // 'drawio-rendered' は拡張描画である目印。
-    // previewHtmlBuilder の CSS `.mxgraph:not(.drawio-rendered)` で
-    // ユーザ自前の .mxgraph と確実に分離する。
+    // The 'drawio-rendered' class marks an extension-rendered node.
+    // previewHtmlBuilder's CSS `.mxgraph:not(.drawio-rendered)` uses it
+    // to cleanly separate extension renders from the user's own .mxgraph nodes.
     div.className = 'mxgraph drawio-rendered';
     div.setAttribute(
       'data-mxgraph',
@@ -144,13 +148,13 @@
         nav: false,
         resize: true,
         'auto-fit': true,
-        // 要素bbox基準でタイトに描画（ページ寸法の空白を切り捨てる）
+        // Crop tightly to the element bbox (drop the page-size whitespace).
         'auto-crop': true,
         center: true,
         border: computeBorder(entry.mxgraphDiv),
         editable: false,
         'check-visible-state': false,
-        // ダークテーマ追従：viewer に dark-mode を渡すと SVG 内の白背景がダーク化される
+        // Theme follow-through: passing dark-mode to the viewer darkens the SVG background.
         'dark-mode': isDarkMode(),
       })
     );
@@ -162,17 +166,17 @@
           if (div.querySelectorAll('svg').length === 0) {
             log(
               'warn',
-              `SVGが生成されていません diagram-id=${entry.slot.dataset.diagramId}`
+              `No SVG was produced for diagram-id=${entry.slot.dataset.diagramId}`
             );
           }
         }, 500);
       } else {
-        log('error', 'GraphViewer.createViewerForElement が存在しません');
+        log('error', 'GraphViewer.createViewerForElement is missing');
       }
     } catch (e) {
       const err = document.createElement('div');
       err.className = 'drawio-empty';
-      err.textContent = '描画エラー: ' + (e && e.message ? e.message : String(e));
+      err.textContent = 'Render error: ' + (e && e.message ? e.message : String(e));
       entry.mxgraphDiv.appendChild(err);
       log(
         'error',
@@ -202,7 +206,7 @@
     }
   }
 
-  // 全体 ESC で fullscreen 解除
+  // Global ESC: exit fullscreen.
   window.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Escape') return;
     const fs = document.querySelector('.drawio-slot.drawio-fullscreen');
@@ -211,7 +215,9 @@
     document.body.classList.remove('drawio-has-fullscreen');
     const entry = slots.get(fs.dataset.diagramId);
     if (entry) {
-      entry.zoomBtn.textContent = '🔍 拡大';
+      entry.zoomBtn.textContent = '🔍';
+      entry.zoomBtn.title = 'Toggle fullscreen';
+      entry.zoomBtn.setAttribute('aria-label', 'Toggle fullscreen');
       entry.mxgraphDiv.style.height = '';
       if (entry.xml) renderViewer(entry, entry.xml);
     }
@@ -224,7 +230,7 @@
     }
   });
 
-  // DOMContentLoaded を待ってから slot を検出する
+  // Wait for DOMContentLoaded before discovering slots.
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       discoverSlots();

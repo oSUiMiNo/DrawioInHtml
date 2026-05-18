@@ -4,9 +4,9 @@ export interface DrawioBlock {
   diagramId: string;
   xml: string;
   /**
-   * このブロックを書き戻すときの target 仕様：
-   *  - 'new'  → type="application/xml" + data-drawio-id="..."
-   *  - 'old'  → type="application/drawio+xml" + data-diagram-id="..." （v0.2.x 互換）
+   * Target form used when writing this block back:
+   *  - 'new' -> type="application/xml" + data-drawio-id="..."
+   *  - 'old' -> type="application/drawio+xml" + data-diagram-id="..." (v0.2.x compatibility)
    */
   marker: 'new' | 'old';
 }
@@ -17,39 +17,39 @@ const OLD_MARKER_TYPE = 'application/drawio+xml';
 const OLD_MARKER_ID_ATTR = 'data-diagram-id';
 
 /**
- * HTML 文書から Drawio 編集対象ブロックを取り出す。
+ * Extract Drawio-editable blocks from an HTML document.
  *
- * 認識するパターン（広い順）：
- *  1. `<script type="application/xml" data-drawio-id="X">XML</script>` — v0.3 推奨
- *  2. `<script type="application/xml" id="X">XML</script>` — 一般的（自前 mount JS で
- *     id 経由で読み出す書き方）。中身が `<mxfile>` または `<mxGraphModel>` で始まる場合のみ
- *     Drawio として扱う（汎用 XML データを誤認しないため）
- *  3. `<script type="application/drawio+xml" data-diagram-id="X">XML</script>` — v0.2.x 旧マーカー
+ * Recognized patterns (broadest first):
+ *  1. `<script type="application/xml" data-drawio-id="X">XML</script>` — v0.3+ recommended
+ *  2. `<script type="application/xml" id="X">XML</script>` — generic "self-mount" pattern
+ *     (user JS reads the script by id). Only treated as Drawio when the body starts with
+ *     `<mxfile>` or `<mxGraphModel>`, to avoid mis-detecting unrelated XML.
+ *  3. `<script type="application/drawio+xml" data-diagram-id="X">XML</script>` — v0.2.x legacy
  */
 export function extractDrawioBlocks(html: string): DrawioBlock[] {
   const root = parse(html);
   const blocks: DrawioBlock[] = [];
 
-  // application/xml の script を全部走査
+  // Walk every application/xml script.
   for (const el of root.querySelectorAll(`script[type="${NEW_MARKER_TYPE}"]`)) {
-    // .text は HTML エンティティをデコードしてしまうので .rawText を使う（v0.2.1 で確立）
+    // Use .rawText (not .text) so HTML entities inside the XML are preserved verbatim. (v0.2.1)
     const xml = el.rawText.trim();
     const dataAttr = el.getAttribute(NEW_MARKER_ID_ATTR);
     if (dataAttr) {
-      // パターン1: data-drawio-id 明示
+      // Pattern 1: data-drawio-id present.
       blocks.push({ diagramId: dataAttr, xml, marker: 'new' });
       continue;
     }
     const idAttr = el.getAttribute('id');
     if (idAttr && isDrawioXml(xml)) {
-      // パターン2: id 属性のみ。中身が Drawio XML の時だけ採用
+      // Pattern 2: id attribute only — accept only when the body is Drawio XML.
       blocks.push({ diagramId: idAttr, xml, marker: 'new' });
       continue;
     }
-    // data-drawio-id も id も無い application/xml は汎用XML扱いで無視
+    // application/xml without data-drawio-id and without id is generic XML — ignore.
   }
 
-  // パターン3: 旧マーカー
+  // Pattern 3: legacy marker.
   for (const el of root.querySelectorAll(`script[type="${OLD_MARKER_TYPE}"]`)) {
     const id = el.getAttribute(OLD_MARKER_ID_ATTR) ?? '';
     blocks.push({ diagramId: id, xml: el.rawText.trim(), marker: 'old' });
@@ -64,8 +64,8 @@ function isDrawioXml(xml: string): boolean {
 }
 
 /**
- * 指定された diagramId を持つ Drawio ブロックの中身を新しい XML で置換する。
- * 新旧両マーカーを順に検索し、最初に一致したものを書き換える。
+ * Replace the body of the Drawio block whose diagramId matches.
+ * Searches both new and legacy markers in order; rewrites the first match.
  */
 export function replaceDrawioXml(
   html: string,

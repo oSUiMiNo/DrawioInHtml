@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Drawio公式ビューアーJSをmedia/に取得する。冪等：既に存在すればスキップ。
+// Fetch the official Drawio viewer JS into media/. Idempotent: skip if already present.
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -46,6 +46,6 @@ new Promise((resolve, reject) => get(URL, resolve, reject))
   })
   .catch((err) => {
     console.error('[fetch-viewer] failed:', err.message);
-    console.error('  手動でダウンロードして配置してください: ' + URL);
+    console.error('  Please download the file manually from: ' + URL);
     process.exit(1);
   });

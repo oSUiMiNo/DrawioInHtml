@@ -49,7 +49,7 @@
       return;
     }
     if (msg.type === 'saved') {
-      // 必要であれば後でステータス表示
+      // Reserved for a status indicator if needed in the future.
       return;
     }
   }

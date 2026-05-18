@@ -56,7 +56,7 @@ export class EditorPanelManager implements vscode.Disposable {
     const fileName = path.basename(document.uri.fsPath);
     const panel = vscode.window.createWebviewPanel(
       'drawioInHtml.editorPanel',
-      `編集: ${fileName}#${diagramId}`,
+      `Edit: ${fileName}#${diagramId}`,
       { viewColumn: vscode.ViewColumn.Beside, preserveFocus: false },
       {
         enableScripts: true,
@@ -102,7 +102,7 @@ export class EditorPanelManager implements vscode.Disposable {
 
     if (initialXml === undefined) {
       vscode.window.showWarningMessage(
-        `diagram-id "${diagramId}" がHTML中に見つかりません。`
+        `diagram-id "${diagramId}" was not found in the HTML.`
       );
     }
   }
@@ -110,14 +110,14 @@ export class EditorPanelManager implements vscode.Disposable {
   private async applySave(entry: PanelEntry, xml: string): Promise<void> {
     const doc = await this.findDocument(entry.documentUri);
     if (!doc) {
-      vscode.window.showErrorMessage('編集対象のHTMLドキュメントが見つかりません');
+      vscode.window.showErrorMessage('Target HTML document not found.');
       return;
     }
     const current = doc.getText();
     const { html: next, replaced } = replaceDrawioXml(current, entry.diagramId, xml);
     if (!replaced) {
       vscode.window.showWarningMessage(
-        `diagram-id "${entry.diagramId}" がHTML中に見つかりませんでした`
+        `diagram-id "${entry.diagramId}" was not found in the HTML.`
       );
       return;
     }
@@ -136,15 +136,15 @@ export class EditorPanelManager implements vscode.Disposable {
     const ok = await vscode.workspace.applyEdit(edit);
     if (!ok) {
       entry.suppressNextChange = false;
-      vscode.window.showErrorMessage('Drawio: 編集の適用に失敗しました');
+      vscode.window.showErrorMessage('Drawio: failed to apply edit.');
       return;
     }
-    // ディスクへも永続化（HTMLタブ側で Ctrl+S を押させない）
+    // Persist to disk too, so the user does not need to press Ctrl+S on the HTML tab.
     try {
       await doc.save();
     } catch (e) {
       vscode.window.showWarningMessage(
-        `Drawio: HTMLファイルへの保存に失敗しました: ${e instanceof Error ? e.message : String(e)}`
+        `Drawio: failed to save the HTML file: ${e instanceof Error ? e.message : String(e)}`
       );
     }
     const ack: HostToEditorMsg = { type: 'saved' };
@@ -201,7 +201,7 @@ export class EditorPanelManager implements vscode.Disposable {
     ].join('; ');
 
     return /* html */ `<!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="${csp}">

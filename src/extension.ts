@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext): void {
     DrawioHtmlEditorProvider.register(context, editorPanelManager)
   );
 
-  // 右クリックメニュー / Ctrl+Shift+V から呼ばれる「プレビューで開く」コマンド
+  // "Open Preview" command, invoked from the context menu or Ctrl+Shift+V.
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'drawioInHtml.openPreview',
@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const target = uri ?? vscode.window.activeTextEditor?.document.uri;
         if (!target) {
           vscode.window.showInformationMessage(
-            'Drawio in HTML: 対象のHTMLファイルが特定できません。'
+            'Drawio in HTML: no target HTML file detected.'
           );
           return;
         }

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { parse, HTMLElement } from 'node-html-parser';
 
-// 新マーカー（v0.3+）：ブラウザ標準の application/xml を採用し、data-drawio-id で識別
+// New marker (v0.3+): standard application/xml type, identified by data-drawio-id.
 const NEW_MARKER_TYPE = 'application/xml';
 const NEW_MARKER_ID_ATTR = 'data-drawio-id';
-// 旧マーカー（v0.2.x 互換）：拡張独自 type
+// Legacy marker (v0.2.x compatibility): extension-specific type.
 const OLD_MARKER_TYPE = 'application/drawio+xml';
 const OLD_MARKER_ID_ATTR = 'data-diagram-id';
 
@@ -23,13 +23,13 @@ export interface BuildResult {
 }
 
 /**
- * ユーザのHTMLを WebView 表示用に加工する：
- *  - <meta CSP> の強制注入（既存のCSPは削除）
- *  - <base> 削除
- *  - preview.css / viewer-static.min.js / preview.js の注入
- *  - 各 <script type="application/drawio+xml"> を <div class="drawio-slot"> に置換
- *  - 相対パス URL（img.src, link.href, a.href, script.src）を webview.asWebviewUri で変換
- *  - インラインスクリプト・外部CSS の検出と警告メッセージ生成
+ * Transform user HTML for display inside the WebView:
+ *  - Force-inject <meta CSP> (existing CSP is removed)
+ *  - Remove <base>
+ *  - Inject preview.css / viewer-static.min.js / preview.js
+ *  - Replace each Drawio <script> with <div class="drawio-slot">
+ *  - Rewrite relative URLs (img.src, link.href, a.href, script.src, ...) via webview.asWebviewUri
+ *  - Detect inline scripts / external CSS and generate warning messages
  */
 export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   const { rawHtml, documentUri, extensionUri, webview } = opts;
@@ -40,7 +40,7 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   const previewJsUri = String(webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, 'preview.js')));
   const nonce = generateNonce();
 
-  // html/head/body 要素が無い snippet HTML は body 直下に包む
+  // Snippet HTML without html/head/body: wrap it as body content.
   const hasHtml = /<html[\s>]/i.test(rawHtml);
   const wrappedHtml = hasHtml ? rawHtml : `<!DOCTYPE html><html><head></head><body>${rawHtml}</body></html>`;
 
@@ -62,16 +62,16 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     body = root.querySelector('body');
   }
   if (!head || !body) {
-    // それでも head/body が無いなら諦めて全体を body として扱う
+    // If head/body still cannot be obtained, give up and treat the whole input as body.
     return {
       html: `<!DOCTYPE html><html><head></head><body>${escapeText(rawHtml)}</body></html>`,
       diagramIds: [],
       missingId: false,
-      warnings: ['HTML構造の解析に失敗しました'],
+      warnings: ['Failed to parse the HTML structure.'],
     };
   }
 
-  // 既存の CSP meta を削除
+  // Remove any existing CSP meta tags.
   for (const meta of head.querySelectorAll('meta')) {
     const httpEquiv = (meta.getAttribute('http-equiv') ?? '').toLowerCase();
     if (httpEquiv === 'content-security-policy') {
@@ -79,16 +79,16 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     }
   }
 
-  // 既存 <base> 削除（viewer の URL 解決が壊れるため）
+  // Remove any existing <base> (breaks viewer URL resolution).
   for (const base of head.querySelectorAll('base')) {
     base.remove();
   }
 
-  // 新規 CSP を <head> 先頭に挿入
-  // v0.2.3: ユーザHTML内のインラインスクリプトと外部CDNスクリプトを許可するため、
-  // 'unsafe-inline' と https: を加えて緩和。nonce は外す（'unsafe-inline' と nonce が
-  // 共存すると nonce 優先で 'unsafe-inline' が無効化される CSP3 仕様のため）。
-  // セキュリティ低下のトレードオフは README で警告する。
+  // Inject a fresh CSP at the beginning of <head>.
+  // v0.2.3: To allow user inline scripts and external CDN scripts inside the preview,
+  // we relax the CSP with 'unsafe-inline' and https:. Nonce is dropped on purpose:
+  // per CSP3, when 'unsafe-inline' and nonce coexist, the nonce wins and 'unsafe-inline'
+  // is disabled. The security trade-off is documented in README.
   const csp = [
     `default-src 'none'`,
     `img-src ${webview.cspSource} https: data: blob: vscode-webview-resource:`,
@@ -100,19 +100,19 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     `child-src blob: https:`,
     `frame-src https:`,
   ].join('; ');
-  // 1) CSP を <head> 先頭に挿入（最優先）
-  // 2) その直後（=ユーザ <style> より前）に preview.css を挿入。
-  //    同 specificity ならユーザ <style> が後勝ちで尊重される設計。
-  //    ユーザ未指定時のみ preview.css のテーマ追従が反映される。
-  // 3) color-scheme meta はユーザが未指定なら 'light dark' を自動付与
-  //    （スクロールバーやフォーム要素のテーマ追従）。
+  // 1) Insert CSP at the very top of <head> (highest priority).
+  // 2) Immediately after that (= before the user's <style>), insert preview.css.
+  //    At equal specificity the user's <style> wins by ordering, so user styles are honored.
+  //    When the user did not specify a value, preview.css's theme-following defaults apply.
+  // 3) Auto-add a color-scheme meta with 'light dark' if the user did not set one
+  //    (so scrollbars and form controls follow the theme).
   head.insertAdjacentHTML(
     'afterbegin',
     `<meta http-equiv="Content-Security-Policy" content="${escapeAttr(csp)}">` +
       `<link rel="stylesheet" href="${escapeAttr(previewCssUri)}">`
   );
 
-  // color-scheme meta 自動付与（ユーザ既指定なら触らない）
+  // Auto-add color-scheme meta (skip if the user already set one).
   const hasColorScheme = head
     .querySelectorAll('meta')
     .some((m) => (m.getAttribute('name') ?? '').toLowerCase() === 'color-scheme');
@@ -120,9 +120,10 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     head.insertAdjacentHTML('beforeend', '<meta name="color-scheme" content="light dark">');
   }
 
-  // ユーザHTML が CDN や別パスから viewer-static.min.js を読み込んでいる場合、
-  // 拡張同梱版とぶつかって二重ロード→処理競合になる。プレビュー時は拡張側だけで
-  // 描画したいので、該当 <script src> を DOM から削除する（ソースHTMLは無変更）。
+  // If the user HTML loads viewer-static.min.js from a CDN or any other path,
+  // it clashes with the bundled copy and causes double-load races. During preview
+  // we want the extension's bundled viewer to win, so we strip those <script src>
+  // tags from the DOM (the source HTML is left untouched).
   for (const scriptEl of Array.from(root.querySelectorAll('script[src]'))) {
     const src = scriptEl.getAttribute('src') ?? '';
     if (/viewer-static\.min\.js(\?|$|#)/i.test(src)) {
@@ -130,7 +131,7 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     }
   }
 
-  // 相対パス URL 変換
+  // Rewrite relative URLs to webview URIs.
   rewriteRelativeUrl(root, 'img', 'src', documentDir, webview);
   rewriteRelativeUrl(root, 'link', 'href', documentDir, webview);
   rewriteRelativeUrl(root, 'a', 'href', documentDir, webview);
@@ -140,12 +141,13 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   rewriteRelativeUrl(root, 'audio', 'src', documentDir, webview);
   rewriteRelativeUrl(root, 'iframe', 'src', documentDir, webview);
 
-  // Drawio script タグを slot div に置換
-  // 認識パターン：
-  //   1. <script type="application/xml" data-drawio-id="X"> — v0.3 推奨
-  //   2. <script type="application/xml" id="X"> 中身が <mxfile> or <mxGraphModel> — 自前 mount JS パターン
-  //   3. <script type="application/drawio+xml" data-diagram-id="X"> — v0.2.x 旧
-  // 置換後 slot：<div class="drawio-slot" data-diagram-id="X"></div>（内部表現は一本化）
+  // Replace Drawio <script> tags with slot divs.
+  // Recognized patterns:
+  //   1. <script type="application/xml" data-drawio-id="X"> — v0.3+ recommended
+  //   2. <script type="application/xml" id="X"> with body starting with <mxfile> or <mxGraphModel>
+  //      — generic self-mount pattern
+  //   3. <script type="application/drawio+xml" data-diagram-id="X"> — v0.2.x legacy
+  // Replacement: <div class="drawio-slot" data-diagram-id="X"></div> (unified internal form).
   const diagramIds: string[] = [];
   let missingId = false;
 
@@ -154,12 +156,12 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     let diagramId: string | null = null;
 
     if (type === NEW_MARKER_TYPE) {
-      // パターン1: data-drawio-id 明示
+      // Pattern 1: data-drawio-id present.
       const dataAttr = scriptEl.getAttribute(NEW_MARKER_ID_ATTR);
       if (dataAttr) {
         diagramId = dataAttr;
       } else {
-        // パターン2: id 属性で識別（中身が Drawio XML の時だけ）
+        // Pattern 2: id attribute only — accept only when the body is Drawio XML.
         const idAttr = scriptEl.getAttribute('id');
         const body = scriptEl.rawText.trim();
         if (idAttr && isDrawioXmlSnippet(body)) {
@@ -167,7 +169,7 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
         }
       }
     } else if (type === OLD_MARKER_TYPE) {
-      // パターン3: 旧マーカー
+      // Pattern 3: legacy marker.
       const oldId = scriptEl.getAttribute(OLD_MARKER_ID_ATTR);
       if (oldId) {
         diagramId = oldId;
@@ -185,30 +187,30 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     scriptEl.replaceWith(slotHtml);
   }
 
-  // ユーザ自前の描画ホスト（<div class="mxgraph">、<div class="drawio-host">）を非表示にする CSS。
-  // 拡張描画は preview.js が `.mxgraph.drawio-rendered` クラスで作るので、
-  // `.mxgraph:not(.drawio-rendered)` で確実に分離する（v0.3.2 の `display: revert` トリックは
-  // 一部 Chromium で期待通りにならないケースがあったため廃止）。
+  // Hide the user's own render hosts (<div class="mxgraph">, <div class="drawio-host">).
+  // The extension renders into `.mxgraph.drawio-rendered`, so `.mxgraph:not(.drawio-rendered)`
+  // cleanly separates the two. (The v0.3.2 `display: revert` trick was dropped because some
+  // Chromium builds did not honor it consistently.)
   if (diagramIds.length > 0) {
     head.insertAdjacentHTML(
       'beforeend',
       `<style id="__drawio-in-html-hide-native">
-        /* 拡張描画でない .mxgraph と、ユーザ自前ホスト div を隠す */
+        /* Hide non-extension .mxgraph nodes and the user's own host divs. */
         .mxgraph:not(.drawio-rendered),
         .drawio-host { display: none !important; }
       </style>`
     );
   }
 
-  // 警告検出
+  // Detect warnings.
   const warnings: string[] = [];
   if (missingId) {
     warnings.push(
-      'data-diagram-id を持たない <script type="application/drawio+xml"> があります。表示・編集の対象外です。'
+      'Found <script type="application/drawio+xml"> without data-diagram-id; it cannot be previewed or edited.'
     );
   }
 
-  // 警告バナーを body 先頭に挿入
+  // Insert a warning banner at the top of <body>.
   if (warnings.length > 0) {
     const items = warnings.map((w) => `<div>${escapeText(w)}</div>`).join('');
     body.insertAdjacentHTML(
@@ -217,9 +219,9 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     );
   }
 
-  // viewer-static.min.js と preview.js を <body> 末尾に注入
-  // CSP に 'unsafe-inline' を含めたので nonce 属性は外す（共存すると nonce 優先で
-  // ユーザのインラインスクリプトが動かなくなる）
+  // Inject viewer-static.min.js and preview.js at the end of <body>.
+  // Because the CSP includes 'unsafe-inline', the nonce attribute is omitted on purpose
+  // (with both present, nonce wins and the user's inline scripts stop running).
   body.insertAdjacentHTML(
     'beforeend',
     `<script src="${escapeAttr(viewerJsUri)}"></script>`
@@ -258,13 +260,13 @@ function rewriteRelativeUrl(
       const webviewUri = String(webview.asWebviewUri(resolved));
       el.setAttribute(attrName, webviewUri);
     } catch {
-      // 無効なパスは放置
+      // Ignore invalid paths.
     }
   }
 }
 
 function isAbsoluteOrSpecial(url: string): boolean {
-  // 絶対URL / data: / mailto: / tel: / javascript: / #ハッシュ / //hostname
+  // Absolute URL / data: / mailto: / tel: / javascript: / #hash / //hostname
   return /^[a-z][a-z0-9+.-]*:/i.test(url) || url.startsWith('//') || url.startsWith('#');
 }
 
