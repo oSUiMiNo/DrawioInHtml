@@ -80,16 +80,20 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   }
 
   // 新規 CSP を <head> 先頭に挿入
+  // v0.2.3: ユーザHTML内のインラインスクリプトと外部CDNスクリプトを許可するため、
+  // 'unsafe-inline' と https: を加えて緩和。nonce は外す（'unsafe-inline' と nonce が
+  // 共存すると nonce 優先で 'unsafe-inline' が無効化される CSP3 仕様のため）。
+  // セキュリティ低下のトレードオフは README で警告する。
   const csp = [
     `default-src 'none'`,
     `img-src ${webview.cspSource} https: data: blob: vscode-webview-resource:`,
-    `style-src ${webview.cspSource} 'unsafe-inline'`,
-    `font-src ${webview.cspSource} data: blob:`,
-    `script-src ${webview.cspSource} 'unsafe-eval' 'nonce-${nonce}'`,
+    `style-src ${webview.cspSource} 'unsafe-inline' https:`,
+    `font-src ${webview.cspSource} data: blob: https:`,
+    `script-src ${webview.cspSource} 'unsafe-eval' 'unsafe-inline' https:`,
     `connect-src ${webview.cspSource} blob: data: https:`,
-    `worker-src ${webview.cspSource} blob:`,
-    `child-src blob:`,
-    `frame-src https://embed.diagrams.net`,
+    `worker-src ${webview.cspSource} blob: https:`,
+    `child-src blob: https:`,
+    `frame-src https:`,
   ].join('; ');
   // 1) CSP を <head> 先頭に挿入（最優先）
   // 2) その直後（=ユーザ <style> より前）に preview.css を挿入。
@@ -140,37 +144,12 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     scriptEl.replaceWith(slotHtml);
   }
 
-  // 警告検出
+  // 警告検出（v0.2.3 で CSP 緩和したため、インラインscript/外部CSS の警告は廃止）
   const warnings: string[] = [];
   if (missingId) {
     warnings.push(
       'data-diagram-id を持たない <script type="application/drawio+xml"> があります。表示・編集の対象外です。'
     );
-  }
-  for (const scriptEl of root.querySelectorAll('script')) {
-    const type = (scriptEl.getAttribute('type') ?? '').toLowerCase();
-    if (type === DRAWIO_SCRIPT_TYPE) continue;
-    // この時点で残っている script は viewer/preview の注入前なので、ユーザ由来のもの
-    const hasInline = scriptEl.text.trim().length > 0;
-    const src = scriptEl.getAttribute('src');
-    if (hasInline) {
-      warnings.push('インラインスクリプト (<script>...</script>) は CSP の制約で実行されません。');
-      break;
-    }
-    if (src && !/^https?:/i.test(src) && !src.startsWith(String(webview.cspSource))) {
-      warnings.push('ローカル相対パスの <script src="..."> は CSP の制約で実行されません。');
-      break;
-    }
-  }
-  for (const link of root.querySelectorAll('link')) {
-    const rel = (link.getAttribute('rel') ?? '').toLowerCase();
-    const href = link.getAttribute('href') ?? '';
-    if (rel === 'stylesheet' && href !== previewCssUri && !/^https?:/i.test(href)) {
-      warnings.push(
-        '外部スタイルシート (<link rel="stylesheet">) は読み込めません。<style>...</style> を本文に記述してください。'
-      );
-      break;
-    }
   }
 
   // 警告バナーを body 先頭に挿入
@@ -183,13 +162,15 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   }
 
   // viewer-static.min.js と preview.js を <body> 末尾に注入
+  // CSP に 'unsafe-inline' を含めたので nonce 属性は外す（共存すると nonce 優先で
+  // ユーザのインラインスクリプトが動かなくなる）
   body.insertAdjacentHTML(
     'beforeend',
-    `<script nonce="${nonce}" src="${escapeAttr(viewerJsUri)}"></script>`
+    `<script src="${escapeAttr(viewerJsUri)}"></script>`
   );
   body.insertAdjacentHTML(
     'beforeend',
-    `<script nonce="${nonce}" src="${escapeAttr(previewJsUri)}"></script>`
+    `<script src="${escapeAttr(previewJsUri)}"></script>`
   );
 
   let result = root.toString();

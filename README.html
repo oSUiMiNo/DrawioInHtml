@@ -371,10 +371,34 @@ npm run compile
   <li>編集対象は <code>data-diagram-id</code> 属性を持つ <code>&lt;script type="application/drawio+xml"&gt;</code> のみ</li>
   <li>1つのHTML内で <code>data-diagram-id</code> は一意であること</li>
   <li>編集機能はネット必須（Drawio エディタ本体は本家オンライン版を利用）</li>
-  <li>ユーザHTML内のインライン <code>&lt;script&gt;...&lt;/script&gt;</code> と外部 <code>&lt;script src&gt;</code> は <strong>CSP の制約で実行されません</strong>（検出時にプレビュー先頭に警告バナーを表示）</li>
-  <li>ユーザHTML内の外部 <code>&lt;link rel="stylesheet"&gt;</code> も同様に読み込めません（<code>&lt;style&gt;...&lt;/style&gt;</code> をHTML内に直接記述してください）</li>
-  <li>動くもの：HTML本文要素、<code>&lt;style&gt;</code> インラインCSS、<code>https://</code> 絶対URL画像、<code>data:</code> URI、相対パス画像、Drawio埋め込み</li>
 </ul>
+
+<h2>⚠️ セキュリティに関する注意</h2>
+
+<p>
+  <strong>v0.2.3 以降</strong>：このプレビューは HTML の中に書かれた <strong>JavaScript をそのまま実行します</strong>。Mermaid や Drawio などを CDN 経由で使えるようにするための仕様です。
+</p>
+
+<p>
+  これは便利な反面、<strong>他人が作ったHTMLや、ネットで拾ったHTML</strong> をプレビューで開くと、その中の JavaScript が動いて以下のような望ましくない動作が起きる可能性があります：
+</p>
+
+<ul>
+  <li>知らないサイトに勝手にアクセスする</li>
+  <li>個人情報を外部に送信する</li>
+  <li>ブラウザ操作を乗っ取る（XSS と呼ばれる類の挙動）</li>
+</ul>
+
+<h3>安全に使うために</h3>
+
+<ul>
+  <li><strong>自分で書いたHTMLのみ</strong>プレビューで開く</li>
+  <li>信頼できない他人のHTMLは、<strong>通常のテキストエディタ</strong>で中身を確認してから開く</li>
+</ul>
+
+<div class="callout warn">
+  <strong>原則</strong>：一般のブラウザで HTML を開くのと同じレベルのリスクがあると考えてください。VSCode のプレビューだから安全、ということはありません。
+</div>
 
 <h2>ライセンス・クレジット</h2>
 

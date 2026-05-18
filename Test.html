@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>LiveApp プロジェクト README</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1216;
+    --panel: #181c22;
+    --panel2: #1e242c;
+    --line: #2b313a;
+    --text: #e7eaef;
+    --muted: #9aa3ad;
+    --accent: #7da6ff;
+    --accent2: #7fd1a0;
+    --warn: #ffba6a;
+    --danger: #ff7a7a;
+    --code-bg: #11151a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+    line-height: 1.65;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+  }
+  h1 {
+    font-size: 28px;
+    margin: 0 0 6px;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+  .lead {
+    color: var(--muted);
+    margin-top: 0;
+    margin-bottom: 26px;
+  }
+  h2 {
+    font-size: 20px;
+    margin: 38px 0 10px;
+    padding: 6px 12px;
+    color: #fff;
+    background: linear-gradient(90deg, rgba(125,166,255,0.18), transparent 70%);
+    border-left: 4px solid var(--accent);
+    border-radius: 4px;
+  }
+  h3 {
+    font-size: 16px;
+    margin: 22px 0 8px;
+    color: var(--accent2);
+  }
+  h4 {
+    font-size: 14px;
+    margin: 18px 0 6px;
+    color: var(--warn);
+  }
+  p, li {
+    font-size: 14.5px;
+  }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 4px; }
+  code, pre {
+    font-family: "Fira Code", "Cascadia Code", Consolas, Menlo, monospace;
+    font-size: 13px;
+  }
+  code {
+    background: var(--code-bg);
+    color: #ffd58a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+    color: #e0e6ec;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 14px 0 22px;
+  }
+  .panel.tip {
+    border-left: 4px solid var(--accent2);
+  }
+  .panel.warn {
+    border-left: 4px solid var(--warn);
+  }
+  .panel.danger {
+    border-left: 4px solid var(--danger);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 22px;
+    font-size: 13.5px;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--panel2);
+    color: var(--accent);
+  }
+  tr:nth-child(even) td {
+    background: rgba(255,255,255,0.02);
+  }
+  .toc {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 22px;
+    margin-bottom: 28px;
+  }
+  .toc ol { margin: 4px 0; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .mermaid {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    margin: 14px 0 22px;
+    text-align: center;
+  }
+  .drawio-host {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px;
+    margin: 14px 0 22px;
+    min-height: 240px;
+  }
+  .drawio-hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: -16px;
+    margin-bottom: 22px;
+    text-align: right;
+  }
+  .badge {
+    display: inline-block;
+    background: var(--panel2);
+    color: var(--accent);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 2px 10px;
+    font-size: 12px;
+    margin: 0 4px 6px 0;
+  }
+  .small { font-size: 12.5px; color: var(--muted); }
+  .ascii {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: "Fira Code", Consolas, monospace;
+    font-size: 12.5px;
+    color: #cfd6df;
+    line-height: 1.4;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 12px 0 22px;
+  }
+  .kv {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 6px 16px;
+    margin: 10px 0;
+  }
+  .kv .k { color: var(--accent); }
+  .pill {
+    display: inline-block;
+    background: rgba(125,166,255,0.16);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 1px 8px;
+    font-size: 12px;
+    margin-right: 4px;
+  }
+  .pill.green { background: rgba(127,209,160,0.16); color: var(--accent2); }
+  .pill.yellow { background: rgba(255,186,106,0.16); color: var(--warn); }
+  .pill.red { background: rgba(255,122,122,0.16); color: var(--danger); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>LiveApp（URP8）</h1>
+<p class="lead">
+  Unity 6 / URP 上で動く VTuber 配信向け統合アプリ。アバター・ワールド・家具などのコンテンツを「パック」単位で外部から取り込み、シーンに合成しながら配信する。
+</p>
+
+<p>
+  <span class="badge">Unity 6 / URP 17.2+</span>
+  <span class="badge">UniRx</span>
+  <span class="badge">UniTask</span>
+  <span class="badge">UI Toolkit</span>
+  <span class="badge">Addressables</span>
+  <span class="badge">DOTween</span>
+  <span class="badge">VMC Protocol</span>
+</p>
+
+<div class="toc">
+  <strong>目次</strong>
+  <ol>
+    <li><a href="#sec-overview">プロジェクト概要</a></li>
+    <li><a href="#sec-dir">ディレクトリ構成</a></li>
+    <li><a href="#sec-arch">アーキテクチャ（MVP 寄り）</a></li>
+    <li><a href="#sec-scene">シーン構成とカメラスタック</a></li>
+    <li><a href="#sec-pack">Pack 機能の 3 層構造</a></li>
+    <li><a href="#sec-ui">UI 描画パイプライン（UI Toolkit + uGUI + RT）</a></li>
+    <li><a href="#sec-input">入力と集中制御（UIOverlaying）</a></li>
+    <li><a href="#sec-data">ランタイム共有データ</a></li>
+    <li><a href="#sec-render">レンダリング戦略</a></li>
+    <li><a href="#sec-legacy">レガシー残骸マップ</a></li>
+    <li><a href="#sec-docs">関連ドキュメント</a></li>
+  </ol>
+</div>
+
+
+<h2 id="sec-overview">1. プロジェクト概要</h2>
+
+<p>LiveApp は次の三つの軸で構成される：</p>
+
+<div class="mermaid">
+flowchart LR
+  USER[配信者]
+  PACK[外部 .pack ファイル]
+  APP{{LiveApp ランタイム}}
+  SCENE[3D シーン<br/>アバター + ワールド + 家具]
+  STREAM[配信ソフト<br/>VTuber / OBS / VMC]
+
+  PACK -->|D&D で取り込み| APP
+  USER -->|UI 操作 / キーボード| APP
+  APP -->|配置・連動| SCENE
+  SCENE -->|描画 + モーキャプ| STREAM
+
+  classDef user fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef pack fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  classDef app fill:#181c22,stroke:#ffba6a,color:#ffd58a
+  classDef scene fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef stream fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  class USER user
+  class PACK pack
+  class APP app
+  class SCENE scene
+  class STREAM stream
+</div>
+
+<ul>
+  <li><strong>パック取込</strong>：<code>.pack</code> ファイルをドラッグ＆ドロップ → <code>BeforeDL / AfterDL / Icons</code> 構造で管理</li>
+  <li><strong>シーン合成</strong>：選択した DL 済みアセットを Addressables 経由でシーンに具現化</li>
+  <li><strong>配信連携</strong>：VMC プロトコルでモーキャプ／表情データを受け取りアバターに反映</li>
+</ul>
+
+
+<h2 id="sec-dir">2. ディレクトリ構成</h2>
+
+<div class="ascii">Assets/LiveApp/
+├─ LiveAppBase.unity ............ メインシーン（常駐：UICam, MainCam, CS, EventSystem 等）
+├─ Scripts/
+│   ├─ Model/ .................... ContentsDatabase / RuntimeData / VRMLoader / VMCSettings
+│   ├─ Presenter/ ................ XxxP（Subject/ReactiveProperty を通じて View と接続）
+│   │     ├─ RuntimeInputP ....... キーボード／マウス入力 → 各操作 Subject へ
+│   │     ├─ RuntimeState ........ UIOverlaying など UI 状態フラグ
+│   │     ├─ AvartarP / RoomP .... アバター／部屋スポーン処理
+│   │     └─ UIRootP ............. 左サイドバー（取り込み・サイズ・ワールド・家具・接続）
+│   ├─ View/
+│   │     ├─ InteractiveView/
+│   │     │   ├─ ControllerView/ . CV：ユーザー操作の入口（取り込み・サイズ調整等）
+│   │     │   └─ ReflectionView/ . CV：Presenter からの結果を反映（RuntimeInputCV など）
+│   │     ├─ AutonomousView/
+│   │     │   └─ ObservationalView/ ... OV：環境を観測（WebCamOV など）
+│   │     ├─ UIToolkit/ ......... 新 UI Toolkit パネル（PackPanelViewBase + 子3つ）
+│   │     ├─ Alpha/Pack/ ........ legacy パック関連 Btn_* / Pack.cs / *Discharger
+│   │     ├─ Alpha/WebCamEditor/ . Web カメラ編集モード
+│   │     └─ PassiveView/ ....... 表示のみ
+│   ├─ StateMachine/ ............. AvatarStateObservalbe
+│   ├─ Utility/ .................. MTConverter_* / LoadAssetBundleScene
+│   ├─ WindowUI/ ................. ウィンドウ装飾
+│   └─ Editor/ ................... Editor 拡張
+├─ Avatar/ ....................... 初期アバター素材
+├─ Rooms/ ........................ ワールド素材
+├─ Anim/ ......................... モーション
+├─ Item/ ......................... 家具・小物
+├─ Shaders/ ...................... カスタムシェーダ（MToon_URP / lilToon / UTS2 旧）
+├─ RenderTexture/ ................ UI Toolkit / WebCam 用 RT
+├─ PosPro/ ....................... URP Volume Profile 群（§9.1 で詳細）
+├─ LiveApp_Profiles/ ............. PPv2 形式の旧 Profile（§10.5 レガシー）
+├─ StreamingRoom/ ................ Additive Load 用ワールドシーン（Mixed Bake）
+└─ .claude/ ...................... プロジェクトスコープのエージェント設定</div>
+
+
+<h2 id="sec-arch">3. アーキテクチャ（MVP 寄り）</h2>
+
+<p>View → Presenter → Model の単方向に近い構成。View はさらに「Interactive（ユーザー操作）」と「Autonomous（環境観測）」に分かれる。</p>
+
+<div class="mermaid">
+flowchart TB
+  subgraph User_Input
+    KB[Keyboard / Mouse]
+    DnD[Drag and Drop]
+  end
+
+  subgraph View_Interactive
+    CV_Ctrl[ControllerView<br/>操作の入口]
+    CV_Ref[ReflectionView<br/>結果の反映]
+  end
+
+  subgraph View_Autonomous
+    OV[ObservationalView<br/>環境観測]
+  end
+
+  subgraph View_UI
+    UIT[UIToolkit Panels<br/>Pack / Import / World / Avatar]
+  end
+
+  subgraph Presenter
+    P[XxxP<br/>Subject / ReactiveProperty]
+    RP[RuntimeInputP<br/>InputEventHandler 集約]
+    RS[RuntimeState<br/>UIOverlaying]
+  end
+
+  subgraph Model
+    M[Pack / ContentsDatabase<br/>RuntimeData / VMCSettings]
+  end
+
+  KB --> RP
+  DnD --> CV_Ctrl
+  CV_Ctrl --> P
+  P --> M
+  M --> P
+  P --> CV_Ref
+  P --> UIT
+  OV --> P
+  P --> RS
+  RS -. 遮蔽 .-> RP
+  RS -. 遮蔽 .-> CV_Ref
+
+  classDef src fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef view fill:#181c22,stroke:#7fd1a0,color:#e7eaef
+  classDef pres fill:#181c22,stroke:#ffba6a,color:#ffd58a
+  classDef model fill:#1e242c,stroke:#ff7a7a,color:#ffcccc
+  class KB,DnD src
+  class CV_Ctrl,CV_Ref,OV,UIT view
+  class P,RP,RS pres
+  class M model
+</div>
+
+<h3>命名ルール</h3>
+<table>
+  <tr><th>サフィックス</th><th>役割</th><th>例</th></tr>
+  <tr><td><code>CV</code></td><td>ControllerView（操作の入口）</td><td><code>ImportAvatarCV</code> / <code>SelectFurniture</code></td></tr>
+  <tr><td><code>RV</code> 相当</td><td>ReflectionView（結果反映）</td><td><code>RuntimeInputCV</code>（実体は CV だが反映寄り）</td></tr>
+  <tr><td><code>OV</code></td><td>ObservationalView（自律観測）</td><td><code>WebCamOV</code></td></tr>
+  <tr><td><code>P</code></td><td>Presenter</td><td><code>RuntimeInputP</code> / <code>AvartarP</code> / <code>RoomP</code></td></tr>
+  <tr><td><code>Btn_*</code></td><td>クリック検知用の旧 View</td><td><code>Btn_PackDischargeTableCreator_Avatar</code></td></tr>
+</table>
+
+<div class="panel tip">
+  <strong>ポイント</strong>：View と Presenter は <code>Subject&lt;T&gt;</code>（UniRx）で結ばれ、依存を直接持たない。Presenter は static イベントとして公開し、View 側が <code>Subscribe</code> する。
+</div>
+
+
+<h2 id="sec-scene">4. シーン構成とカメラスタック</h2>
+
+<p>メインシーンは <code>LiveAppBase.unity</code>。常時存在する主要 GameObject は次の通り。</p>
+
+<div class="mermaid">
+flowchart TB
+  subgraph LiveAppBase[LiveAppBase.unity 常駐]
+    direction TB
+    MainCam[MainCam<br/>tag=MainCamera<br/>3D シーン撮影]
+    UICam[UICam<br/>Overlay Camera<br/>UI Layer のみ]
+    CS[CS<br/>UIRayCasterManager 等の集約]
+    EventSys[EventSystem]
+    AvatarUI[AvatarUI<br/>Layer=Avatar<br/>クリック検知 Collider]
+    AdditiveWorld[(World Scene<br/>Additive Load)]
+  end
+
+  MainCam -. CameraStack .-> UICam
+  CS -. 監視 .-> MainCam
+  AvatarUI -. クリック検知 .-> MainCam
+  AdditiveWorld -. 重ねて表示 .-> LiveAppBase
+
+  classDef cam fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef sys fill:#181c22,stroke:#ffba6a,color:#ffd58a
+  classDef col fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  classDef ext fill:#181c22,stroke:#ff7a7a,color:#ffcccc
+  class MainCam,UICam cam
+  class CS,EventSys sys
+  class AvatarUI col
+  class AdditiveWorld ext
+</div>
+
+<table>
+  <tr><th>GameObject</th><th>役割</th><th>備考</th></tr>
+  <tr><td>MainCam</td><td>3D シーン撮影</td><td><code>MainCamera</code> タグ。UIRayCaster あり。cullingMask = Default ほか</td></tr>
+  <tr><td>UICam</td><td>UI 専用 Overlay</td><td>cullingMask = UI のみ。配下 WorldSpace Canvas に UI Toolkit RT 等を表示</td></tr>
+  <tr><td>CS</td><td>常駐マネージャ集約</td><td><code>UIRayCasterManager</code> など</td></tr>
+  <tr><td>AvatarUI</td><td>3D アバタークリック検知</td><td>CapsuleCollider Trigger。Layer=Avatar。<code>Btn_PackDischargeTableCreator_Avatar</code> がアタッチ</td></tr>
+  <tr><td>World シーン</td><td>選択ワールド</td><td>Additive Load で LiveAppBase に重ねる</td></tr>
+</table>
+
+
+<h2 id="sec-pack">5. Pack 機能の 3 層構造</h2>
+
+<p>「パック」周りには似て非なる 3 つの機能が同居しているため、層を分けて理解する。詳細は <code>MyDocs~/理解/Pack機能の3層構造.md</code>。</p>
+
+<div id="diagram-pack3" class="drawio-host"></div>
+<div class="drawio-hint">この図をクリック → 拡大表示 → 鉛筆アイコンで draw.io エディタへ。編集後は XML をエクスポートしてこの HTML の <code>#drawio-pack3-xml</code> へ貼り戻す</div>
+<script type="application/xml" id="drawio-pack3-xml">
+<mxfile host="app.diagrams.net" modified="2026-05-17T00:00:00.000Z" version="24.0.0" type="device">
+  <diagram name="Pack3Layer" id="pack3layer">
+    <mxGraphModel dx="900" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="320" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="L1" value="&lt;b&gt;Layer 1&lt;/b&gt;&lt;br/&gt;パック取込&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;.pack ファイルをローカル展開&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#7da6ff;strokeWidth=2;fontColor=#e7eaef;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="L2" value="&lt;b&gt;Layer 2&lt;/b&gt;&lt;br/&gt;個別 DL&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;BeforeDL ⇔ AfterDL&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#ffba6a;strokeWidth=2;fontColor=#ffd58a;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="340" y="80" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="L3" value="&lt;b&gt;Layer 3&lt;/b&gt;&lt;br/&gt;シーン配置&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;Materialize でスポーン&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#7fd1a0;strokeWidth=2;fontColor=#e7eaef;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="640" y="80" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="E1" value="展開後 Pack.Actives に登録" style="endArrow=classic;html=1;strokeColor=#9aa3ad;strokeWidth=2;fontColor=#9aa3ad;fontSize=12;edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="L1" target="L2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E2" value="AfterDL に入ると候補化" style="endArrow=classic;html=1;strokeColor=#9aa3ad;strokeWidth=2;fontColor=#9aa3ad;fontSize=12;edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="L2" target="L3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+</script>
+
+<table>
+  <tr><th>層</th><th>何をする</th><th>API</th><th>UI</th><th>担当クラス</th></tr>
+  <tr>
+    <td><span class="pill">L1</span></td>
+    <td>外部 <code>.pack</code> をローカル展開</td>
+    <td><code>PackImporter.Import()</code></td>
+    <td>D&D</td>
+    <td><code>PackImporter</code> / <code>ExternDragAndDrop</code></td>
+  </tr>
+  <tr>
+    <td><span class="pill yellow">L2</span></td>
+    <td>BeforeDL / AfterDL 切替</td>
+    <td><code>pack.DL()</code> / <code>pack.Remove()</code></td>
+    <td>左サイド「取り込み」</td>
+    <td><code>ImportPanelView</code>（新）<br/><code>PackContentDownlorder</code>（旧）</td>
+  </tr>
+  <tr>
+    <td><span class="pill green">L3</span></td>
+    <td>シーンに具現化</td>
+    <td><code>pack.Materialize&lt;T&gt;()</code></td>
+    <td>ワールドボタン／アバタークリック</td>
+    <td><code>WorldDischargePanelView</code><br/><code>AvatarDischargePanelView</code></td>
+  </tr>
+</table>
+
+<div class="panel warn">
+  <strong>鉄則</strong>：L2 はチェック切替のみ・シーンに何も出さない。L3 はシーン具現化のみ・BeforeDL/AfterDL は変えない。1 クリックで両方やってはいけない（過去にここで事故）。
+</div>
+
+
+<h2 id="sec-ui">6. UI 描画パイプライン（UI Toolkit + uGUI + RT）</h2>
+
+<p>URP の Renderer Feature と相性問題があり、UI Toolkit Overlay を直接 Game View に出せない。そのため <strong>UIDocument → RT → UICam 配下の uGUI WorldSpace Canvas + RawImage</strong> という迂回路を経由している。</p>
+
+<div class="mermaid">
+flowchart LR
+  UIDoc[UIDocument<br/>+ VisualElement Tree]
+  PS[PanelSettings<br/>targetTexture=RT]
+  RT[(RenderTexture)]
+  RawImg[RawImage<br/>raycastTarget=true]
+  Canvas[WorldSpace Canvas<br/>UICam 配下]
+  UICam[UICam<br/>Overlay]
+  Game[Game View]
+
+  UIDoc --> PS
+  PS --> RT
+  RT --> RawImg
+  RawImg --> Canvas
+  Canvas --> UICam
+  UICam --> Game
+
+  classDef ui fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef rt fill:#181c22,stroke:#ffba6a,color:#ffd58a
+  classDef out fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  class UIDoc,PS ui
+  class RT,RawImg,Canvas rt
+  class UICam,Game out
+</div>
+
+<h3>クリック伝達経路</h3>
+<div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant U as ユーザー
+  participant uGUI as uGUI Canvas<br/>GraphicRaycaster
+  participant RI as RawImage
+  participant PR as PanelRaycaster<br/>PanelEventHandler
+  participant UIT as UI Toolkit<br/>VisualElement
+  U->>uGUI: マウスクリック
+  uGUI->>RI: hit（raycastTarget=true 必須）
+  RI->>PR: PointerDown 転送
+  PR->>UIT: target=overlay / panel / card 判定
+  UIT->>UIT: PointerDownEvent / ClickEvent
+</div>
+
+<div class="panel tip">
+  詳細な落とし穴と回避法は <code>MyDocs~/理解/実装の注意点と回避策.md §1〜§3</code> 参照。特に <code>RawImage.raycastTarget=true</code> と <code>FlexibleBlurFeature.overlayCompatibilityFix=1</code> は必須（後者の仕組みは <a href="#sec-render">§9.2</a>）。
+</div>
+
+<h3>新 UI Toolkit パネル群（PackPanelViewBase 継承）</h3>
+<div class="mermaid">
+classDiagram
+  class PackPanelViewBase {
+    +UIDocument doc
+    +GameObject presenter
+    #OnEnable()
+    #OnDisable()
+    #DelayedRestoreRayCaster()
+    #SetMainUIRayCasterEnabled(bool)
+    #BuildCard()
+    #ShowStage(int)
+    #virtual GetInitialCategory()
+    #virtual FlattenStage2()
+    #virtual OnPickContent()
+  }
+  class ImportPanelView {
+    Layer 2：取り込みパネル
+    カテゴリ→パック→コンテンツの3段
+  }
+  class WorldDischargePanelView {
+    Layer 3 World
+    FlattenStage2=true
+    pack.Materialize~bool~
+  }
+  class AvatarDischargePanelView {
+    Layer 3 Avatar
+    FlattenStage2=true
+    pack.Materialize~GameObject~
+    + AvartarP.Execute
+  }
+  PackPanelViewBase <|-- ImportPanelView
+  PackPanelViewBase <|-- WorldDischargePanelView
+  PackPanelViewBase <|-- AvatarDischargePanelView
+</div>
+
+
+<h2 id="sec-input">7. 入力と集中制御（UIOverlaying）</h2>
+
+<p>キーボード／マウス入力は <code>InputEventHandler</code>（外部パッケージ）の static イベントから始まり、<code>RuntimeInputP.Execute()</code> で集約される。UI 表示中（<code>RuntimeState.UIOverlaying.Value = true</code>）は<strong>中央のゲート関数</strong>で素の入力が一切伝わらないようにしている。</p>
+
+<div class="mermaid">
+flowchart LR
+  IEH[InputEventHandler<br/>static event]
+  G{{G ゲート<br/>UIOverlaying チェック}}
+  Subs[各種 Subject<br/>onVRM_Move / onCAM_* / onSW_*]
+  CV[RuntimeInputCV<br/>カメラ・アバター操作]
+
+  IEH --> G
+  G -- false 時のみ通過 --> Subs
+  Subs --> CV
+
+  classDef src fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef gate fill:#181c22,stroke:#ff7a7a,color:#ffcccc
+  classDef sub fill:#1e242c,stroke:#ffba6a,color:#ffd58a
+  classDef view fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  class IEH src
+  class G gate
+  class Subs sub
+  class CV view
+</div>
+
+<h3>UIOverlaying をオン／オフする責務</h3>
+<table>
+  <tr><th>タイミング</th><th>誰が立てる</th><th>誰が反応する</th></tr>
+  <tr>
+    <td>UI Toolkit パネル OnEnable</td>
+    <td><code>PackPanelViewBase</code> が <code>UIOverlaying=true</code></td>
+    <td><code>UIRayCasterManager</code>：<code>Camera.main.UIRayCaster.enabled=false</code>＋ Blur 表示<br/><code>RuntimeInputP</code>：ゲートが入力遮断</td>
+  </tr>
+  <tr>
+    <td>UI Toolkit パネル OnDisable</td>
+    <td><code>PackPanelViewBase</code> が <code>UIOverlaying=false</code>（Blur 即消し）<br/>その直後に <code>UIRayCaster.enabled=false</code> を自前で再上書き</td>
+    <td>Blur 即消滅。UIRayCaster だけはマウスアップ＋0.3 秒遅延で復帰</td>
+  </tr>
+</table>
+
+<div class="panel warn">
+  <strong>注意</strong>：UIRayCaster は内部に 0.25 秒のダブルクリック判定窓を持つため、1 フレーム遅延だと「閉じた瞬間の同じクリックが背後 3D に届いて UI が即再オープン」する。マウスアップ＋0.3 秒で復帰しないと貫通する（<code>実装の注意点と回避策.md §3-7</code>）。
+</div>
+
+<h3>ゲート実装の中身</h3>
+<pre>// Presenter/RuntimeInputP.cs
+static System.Action G(System.Action a) =&gt; () =&gt; {
+    if (UIOverlaying.Value) return;
+    a();
+};
+
+// 使い方：全 InputEventHandler 購読を G(...) で包む
+InputEventHandler.On_F  += G(() =&gt; onVRM_Move.OnNext(Vector3.down));
+InputEventHandler.On_Wheel += G(() =&gt; onCAM_Distance.OnNext(Unit.Default));
+InputEventHandler.OnDown_H += G(() =&gt; onCAM_Home.OnNext(Unit.Default));</pre>
+
+<div class="panel tip">
+  新しい入力ハンドラを <code>RuntimeInputP</code> に追加するときは必ず <code>G(...)</code> で包む。包み忘れると UI 表示中もその入力だけ素通りしてバグの原因になる。
+</div>
+
+
+<h2 id="sec-data">8. ランタイム共有データ</h2>
+
+<table>
+  <tr><th>名前</th><th>定義</th><th>主な内容</th></tr>
+  <tr>
+    <td><code>RuntimeData</code></td>
+    <td>static class</td>
+    <td><code>AvatarBodies</code>（生成済みアバターの辞書）／<code>CurrentWourldName</code>／<code>UICam</code> 参照／<code>Avatar_</code>（カレントアバター）など</td>
+  </tr>
+  <tr>
+    <td><code>RuntimeState</code></td>
+    <td>static class</td>
+    <td>
+      <code>UIOverlaying : ReactiveProperty&lt;bool&gt;</code>（UI 前面表示中フラグ・中央集権ゲートの心臓部）。
+      他に各種 Subject：<code>OnLoadAvatar</code> / <code>OnSpawnAvatar</code> / <code>OnLoadFirstAvatar</code> / <code>OnChangeAvatar</code> / <code>OnLoadRoom</code> / <code>OnSpawnRoom</code> / <code>MoCapIsRunning</code>（<code>IReadOnlyReactiveProperty</code>）
+    </td>
+  </tr>
+  <tr>
+    <td><code>VMCState</code></td>
+    <td>static class</td>
+    <td><code>Connecting</code>／<code>Receiver</code>（VMC プロトコル受信）</td>
+  </tr>
+  <tr>
+    <td><code>Pack.Actives</code></td>
+    <td>static dictionary</td>
+    <td>カテゴリ別の登録パック。シーン中で参照できる唯一の真実</td>
+  </tr>
+</table>
+
+<div class="panel danger">
+  <strong>注意</strong>：これらは static で全シーン共通。Play 開始時に正しく初期化されているか、再 Play で持ち越されていないか毎回確認する。
+</div>
+
+
+<h2 id="sec-render">9. レンダリング戦略</h2>
+
+<p>URP 17.2 ベースの絵作りは <strong>Volume Profile（PosPro/）</strong>と <strong>FlexibleBlurFeature</strong>、そして <strong>シェーダ採択優先順位</strong>の三つで決まる。新規ワールドや新規キャラを足すときはこの章の表に従う。</p>
+
+<h3>9.1 URP Volume Profile 構成（PosPro/）</h3>
+
+<p><code>Assets/LiveApp/PosPro/</code> 直下の Volume Profile はカメラスタックと Layer に対応付けて適用される。<code>LiveApp_Profiles/</code> 配下は PPv2 形式の古い Profile なので 10 章を参照して扱う。</p>
+
+<div class="mermaid">
+flowchart LR
+  subgraph CT["Cameras / Targets"]
+    MC[MainCam]
+    UC[UICam Overlay]
+    WC[(WebCam RT)]
+  end
+  subgraph PP["PosPro/ Volume Profile"]
+    VG[Volume_Global]
+    VA[Volume_Avatar]
+    VF[Volume_FireWorks]
+    VN[Volume_NagesenHanabi]
+    VU[Volume_UI]
+    VW[Volume_WebCam]
+  end
+  VG --> MC
+  VA --> MC
+  VF --> MC
+  VN -. 旧 .-> MC
+  VU --> UC
+  VW --> WC
+
+  classDef cam fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef vol fill:#181c22,stroke:#7fd1a0,color:#e7eaef
+  classDef legacy fill:#181c22,stroke:#ff7a7a,color:#ffcccc
+  class MC,UC,WC cam
+  class VG,VA,VF,VU,VW vol
+  class VN legacy
+</div>
+
+<table>
+  <tr><th>Profile ファイル</th><th>適用対象</th><th>用途</th></tr>
+  <tr><td><code>Volume_Global Profile.asset</code></td><td>Global Volume</td><td>全体トーン（Bloom/Tonemap 等）</td></tr>
+  <tr><td><code>Volume_UI Profile.asset</code></td><td>UICam 側 UI Layer</td><td>UI 用 Blur 演出</td></tr>
+  <tr><td><code>Volume_WebCam Profile.asset</code></td><td>WebCAM / WebCamUI レイヤ</td><td>WebCam RT 出力ポスプロ</td></tr>
+  <tr><td><code>Volume_Avatar.asset</code></td><td>Avatar レイヤ</td><td>キャラ出現演出（命名揺れ：「Profile」接尾辞なし）</td></tr>
+  <tr><td><code>Volume_FireWorks.asset</code></td><td>Fireworks レイヤ</td><td>花火 VFX 用 Bloom（命名揺れ：「Profile」接尾辞なし）</td></tr>
+  <tr><td><code>Volume_NagesenHanabi Profile.asset</code></td><td>旧花火モード</td><td><span class="pill red">レガシー</span>10 章で再掲</td></tr>
+</table>
+
+<div class="panel tip">
+  <strong>ポイント</strong>：Volume は <em>Layer</em> で効くため、対象 GameObject の Layer を間違えるとプロファイルが反映されない。Layer 一覧は <code>ProjectSettings/TagManager.asset</code>（Avatar / UI / WebCAM / WebCamUI / Fireworks / AntiPosPro / SFRoom 等）を参照。
+</div>
+
+<div class="panel warn">
+  <strong>注</strong>：上記の図と表の「適用対象」はファイル名と Layer 命名からの<em>推定</em>。実際の Volume コンポーネントの GameObject 配置・Layer Mask 設定は <code>LiveAppBase.unity</code> をシーン検査して確定すること。
+</div>
+
+
+<h3>9.2 FlexibleBlurFeature と overlayCompatibilityFix</h3>
+
+<p>UI Toolkit の Blur は <code>Scripts/View/JeffUI/Scripts/FlexibleBlurFeature.cs</code> と <code>FlexibleBlurRenderGraph.cs</code> で実装されている ScriptableRendererFeature。<strong>URP Overlay Camera 配下で Blur をかける都合上、<code>overlayCompatibilityFix</code> のチェックを必ず入れる（インスペクタ表示で値 = 1）。</strong></p>
+
+<div class="mermaid">
+flowchart TB
+  UD[UIDocument] --> PS[PanelSettings<br/>targetTexture=RT]
+  PS --> RT[(RenderTexture)]
+  RT --> RI[RawImage<br/>raycastTarget=true]
+  RI --> CV[uGUI WorldSpace Canvas<br/>UICam 配下]
+  CV --> BF{FlexibleBlurFeature<br/>overlayCompatibilityFix}
+  BF -- true（= 1） --> OK[QuadBlit 回避<br/>Overlay 正常出力]
+  BF -- false --> NG[Overlay 出力破綻<br/>UI が消える/にじむ]
+  OK --> UCAM[UICam Overlay]
+  UCAM --> GAME[Game View]
+
+  classDef ui fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef gate fill:#181c22,stroke:#ffba6a,color:#ffd58a
+  classDef ok fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  classDef bad fill:#181c22,stroke:#ff7a7a,color:#ffcccc
+  class UD,PS,RT,RI,CV ui
+  class BF gate
+  class OK,UCAM,GAME ok
+  class NG bad
+</div>
+
+<pre>// Scripts/View/JeffUI/Scripts/FlexibleBlurFeature.cs（抜粋）
+[SerializeField] private bool overlayCompatibilityFix;
+
+// Scripts/View/JeffUI/Scripts/FlexibleBlurRenderGraph.cs（抜粋）
+var useQuadBlit = transformationMatrix != Matrix4x4.identity
+                  &amp;&amp; (!overlayCompatibilityFix || uiCamera != null);</pre>
+
+<div class="panel warn">
+  <strong>必須設定</strong>：UICam 側 Renderer の FlexibleBlurFeature で <code>overlayCompatibilityFix = ON</code>。OFF にすると UI Toolkit の Blur 表示が崩壊する。あわせて 6 章の通り <code>RawImage.raycastTarget = true</code> も必須。
+</div>
+
+
+<h3>9.3 シェーダ運用優先順位</h3>
+
+<p>用途別の採用シェーダはこの順序で選ぶ。<code>Shaders/</code> 配下に置いてあるが全部が現役ではない（UTS2 は互換維持のみ・10 章参照）。</p>
+
+<div class="mermaid">
+flowchart LR
+  ASSET[アセット種別]
+  ASSET -- VRM アバター --> MT[MToon_URP<br/>VRM10/Universal Render Pipeline/MToon10]
+  ASSET -- 手付けキャラ --> LIL[lilToon 1.7.3]
+  ASSET -- 既存ユニティちゃん --> UTS[UTS2 v2.5.1<br/>旧]
+  ASSET -- 一般 3D 物体 --> ULIT[URP/Lit]
+
+  classDef src fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef pri fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  classDef sub fill:#1e242c,stroke:#ffba6a,color:#ffd58a
+  classDef legacy fill:#181c22,stroke:#ff7a7a,color:#ffcccc
+  class ASSET src
+  class MT,LIL,ULIT pri
+  class UTS legacy
+</div>
+
+<table>
+  <tr><th>用途</th><th>採用シェーダ</th><th>パス</th><th>備考</th></tr>
+  <tr><td>VRM アバター標準</td><td>MToon_URP</td><td><code>Shaders/MToon_URP/</code></td><td>VRM ロード時に <code>Utility/MTConverter_VRM.cs</code> が Inspector で指定された <code>urpShader</code> 参照でマテリアルを差し替え</td></tr>
+  <tr><td>高品質トゥーン（手付け）</td><td>lilToon 1.7.3</td><td><code>Shaders/lilToon/</code></td><td>URP 対応版</td></tr>
+  <tr><td>ユニティちゃん系（旧）</td><td>UnityChanToonShader v2.5.1</td><td><code>Shaders/UnityChanToonShaderVer2_Project-urp-2.5.1/</code></td><td><span class="pill red">レガシー</span>新規はリンク禁止</td></tr>
+  <tr><td>一般 3D 物体</td><td>URP/Lit</td><td>—</td><td>デフォルト</td></tr>
+</table>
+
+
+<h3>9.4 StreamingRoom Lighting</h3>
+
+<p>常駐シーンと Additive Load されるワールドシーンで Bake モードが異なる。新規ワールドを足すときは StreamingRoom_Endo に倣う。</p>
+
+<table>
+  <tr><th>シーン</th><th>BakeOnSceneLoad</th><th>Bake モード</th><th>LightingDataAsset</th><th>Sun (Directional)</th></tr>
+  <tr><td><code>LiveAppBase.unity</code></td><td>—</td><td>Realtime（Lightmap 非使用）</td><td>無し</td><td>null</td></tr>
+  <tr><td><code>StreamingRoom/StreamingRoom_Endo.unity</code></td><td>1</td><td>Mixed</td><td>有り（<code>cd99c11d…</code>）</td><td>Directional Light あり</td></tr>
+  <tr><td><code>StreamingRoom/StreamingRoom_Endo 1.unity</code></td><td>1</td><td>Mixed（バリアント）</td><td>有り</td><td>有り</td></tr>
+</table>
+
+<div class="panel tip">
+  <strong>新規ワールド追加時の推奨</strong>：<em>Mixed + LightingDataAsset 同梱</em>。LiveAppBase 側は Realtime のままで触らない。Skybox 差し替えは Volume よりシーン側の Lighting Settings で行う。
+</div>
+
+
+<h2 id="sec-legacy">10. レガシー残骸マップ</h2>
+
+<p><code>Scripts/View/Alpha/</code> 配下の旧 UI、コメントアウトされた大ブロック、<code>LiveApp_Profiles/</code> の PPv2 残骸、命名揺れ（typo）が同居している。「いま動いているのか／死んでいるのか」を地図化して、新規参入時に踏まないようにする。</p>
+
+<h3>10.1 Alpha/ 生死判定</h3>
+
+<p>凡例：
+<span class="pill yellow">生・現役 fallback</span>
+<span class="pill green">生・参考実装</span>
+<span class="pill green">生・使用中</span>
+<span class="pill red">死・参照なし</span>
+</p>
+
+<div class="mermaid">
+flowchart LR
+  subgraph S1["生・現役 fallback"]
+    A1[Btn_PackDischargeTableCreator_Avatar]
+    A2[Btn_PackTableCreator_World]
+    A3[Btn_ContentDownloader]
+    A4[PackContentDownlorder]
+    A5[WorldPackDischarger]
+    A6[Btn_PackCls]
+  end
+  subgraph S2["生・参考実装"]
+    B1[AvatarPackDischarger]
+  end
+  subgraph S4["生・使用中"]
+    D1[Alpha/ObjectTable/*]
+  end
+  subgraph S3["死・参照なし"]
+    C1[Alpha/Funiture/*]
+    C2[Alpha/WebCamEditor/*]
+  end
+
+  classDef alive fill:#1e242c,stroke:#ffba6a,color:#ffd58a
+  classDef ref fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  classDef dead fill:#181c22,stroke:#ff7a7a,color:#ffcccc
+  class A1,A2,A3,A4,A5,A6 alive
+  class B1,D1 ref
+  class C1,C2 dead
+</div>
+
+<table>
+  <tr><th>クラス／フォルダ</th><th>状態</th><th>根拠／用途</th></tr>
+  <tr><td><code>Btn_PackDischargeTableCreator_Avatar.cs</code></td><td><span class="pill yellow">生・現役 fallback</span></td><td>新 <code>AvatarDischargePanelView</code> 未割当時に旧 GOTable へフォールバック（L50-53 周辺）</td></tr>
+  <tr><td><code>Btn_PackTableCreator_World.cs</code></td><td><span class="pill yellow">生・現役 fallback</span></td><td>新 <code>WorldDischargePanelView</code> 未割当時のフォールバック</td></tr>
+  <tr><td><code>Btn_ContentDownloader.cs</code></td><td><span class="pill yellow">生・現役 fallback</span></td><td>新 <code>ImportPanelView</code> 未割当時のフォールバック</td></tr>
+  <tr><td><code>PackContentDownlorder.cs</code></td><td><span class="pill yellow">生・現役 fallback</span></td><td>L2 取込 UI の旧実装。新 <code>ImportPanelView</code> と互換維持</td></tr>
+  <tr><td><code>WorldPackDischarger.cs</code></td><td><span class="pill yellow">生・現役 fallback</span></td><td><code>Btn_PackTableCreator_World.cs</code> L103 で <code>AddComponent&lt;WorldPackDischarger&gt;()</code></td></tr>
+  <tr><td><code>Btn_PackCls.cs</code></td><td><span class="pill yellow">生・現役 fallback</span></td><td><code>Btn_ContentDownloader.cs</code> L37 ／ <code>Table_PackCls.cs</code> L13 で参照</td></tr>
+  <tr><td><code>AvatarPackDischarger.cs</code></td><td><span class="pill green">生・参考実装</span></td><td>新 <code>AvatarDischargePanelView</code> の楽観更新ロジックの踏襲元</td></tr>
+  <tr><td><code>Alpha/ObjectTable/*</code></td><td><span class="pill green">生・使用中</span></td><td><code>SelectFurniture.cs</code> L17 が <code>GameObject.Find("ObjectTable_Funiture")</code> で参照（UI Toolkit 移行外）</td></tr>
+  <tr><td><code>Alpha/Funiture/*</code></td><td><span class="pill red">死・呼び元コメントアウト</span></td><td><code>DischargeTableCreator_Funiture.cs</code> 本体は残るが呼び元 <code>RightClickMenu.cs</code> 側がコメントアウトでコールパス断（フォルダ名 typo にも注意）</td></tr>
+  <tr><td><code>Alpha/WebCamEditor/*</code></td><td><span class="pill red">死・推定未使用</span></td><td>機能は <code>WebCamOV</code> に吸収</td></tr>
+</table>
+
+<h3>10.2 新旧 fallback の切替フロー</h3>
+
+<div class="mermaid">
+flowchart TB
+  T[ユーザ操作<br/>Btn_* クリック / D&D]
+  T --> Q{新 UI Toolkit Panel<br/>が割当済み?}
+  Q -- あり --> NEW[ImportPanelView<br/>WorldDischargePanelView<br/>AvatarDischargePanelView]
+  Q -- なし --> OLD[旧 PackContentDownlorder<br/>GOTable / Btn_* fallback]
+  NEW --> S[シーン反映]
+  OLD --> S[シーン反映]
+
+  classDef src fill:#1e242c,stroke:#7da6ff,color:#e7eaef
+  classDef gate fill:#181c22,stroke:#ffba6a,color:#ffd58a
+  classDef new fill:#1e242c,stroke:#7fd1a0,color:#e7eaef
+  classDef old fill:#181c22,stroke:#ff7a7a,color:#ffcccc
+  class T src
+  class Q gate
+  class NEW new
+  class OLD old
+</div>
+
+<div class="panel warn">
+  <strong>注意</strong>：fallback は「動くから残してある」だけで、新規実装の参考にはしないこと。新機能は <code>UIToolkit/</code> 配下の Panel View に追加する。
+</div>
+
+<h3>10.3 コメントアウト大ブロック</h3>
+
+<p>削除されずに残っている過去実装のメモ。手を入れる前に何が捨てられたのかを把握できる。</p>
+
+<table>
+  <tr><th>ファイル</th><th>行範囲</th><th>内容</th></tr>
+  <tr><td><code>Model/Pack.cs</code></td><td>L266-301 / L406-462 / L718-843</td><td>旧 AssetBundle 直読み API（Addressables 採用前）</td></tr>
+  <tr><td><code>Model/RoomLoader.cs</code></td><td>L17-82</td><td>旧 VRM + MTConverter ベースのルームロード</td></tr>
+  <tr><td><code>Model/ContentsDatabase.cs</code></td><td>L1-350（ほぼ全体）</td><td>Prefab/Scene/Motion 別管理案（廃止）</td></tr>
+  <tr><td><code>WindowUI/AltTab.cs</code></td><td>L92-134</td><td>旧 <code>GetAltTabWindows()</code> 実装</td></tr>
+</table>
+
+<h3>10.4 命名揺れ（typo 集約）</h3>
+
+<table>
+  <tr><th>タイポ</th><th>正名</th><th>主な所在</th></tr>
+  <tr><td><code>Avartar</code></td><td>Avatar</td><td><code>AvartarP.cs</code> ほか 3 箇所以上（クラス名にも波及）</td></tr>
+  <tr><td><code>Wourld</code></td><td>World</td><td><code>RuntimeData.CurrentWourldName</code></td></tr>
+  <tr><td><code>Funiture</code></td><td>Furniture</td><td><code>Alpha/Funiture/</code> フォルダ</td></tr>
+  <tr><td><code>Editorble</code></td><td>Editable</td><td><code>RuntimeData.cs</code> ほか</td></tr>
+  <tr><td><code>Observalbe</code></td><td>Observable</td><td><code>AvatarStateObservalbe.cs</code></td></tr>
+  <tr><td><code>Cnvs</code></td><td>Canvas</td><td><code>WindowUI.cs</code> L24 付近</td></tr>
+  <tr><td><code>sapawner</code></td><td>spawner</td><td><code>Pack.cs</code> コメント</td></tr>
+  <tr><td><code>Husuma / Fusuma</code></td><td>Fusuma（襖）</td><td><code>Rooms/Wasitu/</code> 配下</td></tr>
+  <tr><td><code>Wasitu / Washitsu</code></td><td>Washitsu（和室）</td><td><code>Rooms/Wasitu/</code> 配下</td></tr>
+  <tr><td><code>telovision</code></td><td>television</td><td><code>Item/</code> 配下</td></tr>
+  <tr><td><code>nomal</code></td><td>normal</td><td><code>StreamingRoom/tex/</code> ファイル名</td></tr>
+  <tr><td><code>partation</code></td><td>partition</td><td>StreamingRoom 系</td></tr>
+</table>
+
+<div class="panel danger">
+  <strong>リネーム禁止</strong>：これらの typo はクラス名・public フィールド・ファイル名（GUID 紐付け）に食い込んでいる。Rename Refactor は <em>シーン参照切れ・Addressables アドレス断・SerializeField 値消失</em> を同時に起こす可能性があるため、単発リネームはやらない。整理する場合は専用ブランチで Asset 移行込みの一括対応とする。
+</div>
+
+<h3>10.5 設定・アセット側のレガシー</h3>
+
+<ul>
+  <li><code>LiveApp_Profiles/</code>：<strong>PPv2 形式の Profile</strong>。URP 17.2 の Volume と不整合で、現状は使われていない。新規利用禁止、将来的に削除候補。</li>
+  <li><code>Resources/ConvertedVRM/</code>：常時ビルド同梱になるため、本当に動的ロード必須のもの以外は Addressables 化を検討する将来課題。</li>
+  <li><code>Shaders/UnityChanToonShaderVer2_Project-urp-2.5.1/</code>：UTS2 URP 版。新規マテリアルは lilToon または MToon_URP を採用する。</li>
+  <li><code>Volume_NagesenHanabi Profile.asset</code>：旧花火モード用。<code>Volume_FireWorks</code> と用途が重複する可能性があるため生存確認したうえで統廃合候補。</li>
+</ul>
+
+
+<h2 id="sec-docs">11. 関連ドキュメント</h2>
+
+<ul>
+  <li><code>MyDocs~/理解/Pack機能の3層構造.md</code> ：取込・DL・配置の境界と責務</li>
+  <li><code>MyDocs~/理解/実装の注意点と回避策.md</code> ：URP × UI Toolkit、Pack ヘッダ壊れ、貫通防止など落とし穴集</li>
+  <li><code>Assets/LiveApp/.claude/CLAUDE.md</code> ：エージェント向けプロジェクト指示</li>
+  <li><code>Assets/LiveApp/Scripts/Presenter/RuntimeInputP.cs</code> ：入力ゲートの中央実装</li>
+  <li><code>Assets/LiveApp/Scripts/View/UIToolkit/PackPanelViewBase.cs</code> ：UI Toolkit パネル共通基底</li>
+  <li><code>Assets/LiveApp/Scripts/View/JeffUI/Scripts/FlexibleBlurFeature.cs</code> ：UI Blur と <code>overlayCompatibilityFix</code> の実装（§9.2）</li>
+  <li><code>Assets/LiveApp/PosPro/</code> ：URP Volume Profile 群（§9.1）</li>
+  <li><code>Assets/LiveApp/Scripts/View/Alpha/</code> ：レガシー UI 群（§10.1 で生死判定）</li>
+</ul>
+
+<p class="small">この README は単一 HTML。図は Mermaid を CDN から読み込んで描画している。オフライン環境では図が表示されない代わりにコードフェンス相当のテキストが見えるだけになる。</p>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      background: '#1e242c',
+      primaryColor: '#1e242c',
+      primaryTextColor: '#e7eaef',
+      primaryBorderColor: '#7da6ff',
+      lineColor: '#9aa3ad',
+      secondaryColor: '#181c22',
+      tertiaryColor: '#11151a',
+      fontFamily: 'inherit',
+      fontSize: '14px'
+    },
+    flowchart: { curve: 'basis', padding: 10 },
+    sequence: { actorMargin: 50, mirrorActors: false }
+  });
+</script>
+
+<script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+<script>
+  // <script type="application/xml" id="..."> に入れた drawio XML を読み出して、
+  // viewer-static.min.js が認識する .mxgraph 要素に data-mxgraph を組み立てて差し込む。
+  // これで HTML 属性内エスケープに悩まずに XML をそのまま埋め込める。
+  function mountDrawio(hostId, xmlScriptId, opts) {
+    const host = document.getElementById(hostId);
+    const xmlEl = document.getElementById(xmlScriptId);
+    if (!host || !xmlEl) return;
+    const xml = xmlEl.textContent.trim();
+    const config = Object.assign({
+      highlight: '#7da6ff',
+      nav: true,
+      resize: true,
+      lightbox: true,
+      edit: '_blank',
+      toolbar: 'pages zoom layers lightbox',
+      'dark-mode': true,
+      xml: xml
+    }, opts || {});
+    const div = document.createElement('div');
+    div.className = 'mxgraph';
+    div.style.maxWidth = '100%';
+    div.setAttribute('data-mxgraph', JSON.stringify(config));
+    host.appendChild(div);
+    if (window.GraphViewer && typeof window.GraphViewer.processElements === 'function') {
+      window.GraphViewer.processElements();
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', function () {
+    mountDrawio('diagram-pack3', 'drawio-pack3-xml');
+  });
+</script>
+</body>
+</html>
