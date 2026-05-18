@@ -162,21 +162,6 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     scriptEl.replaceWith(slotHtml);
   }
 
-  // ユーザ自前の描画 div（<div class="mxgraph">）が同じ HTML 内に存在する場合、
-  // 拡張側の描画と二重表示になるので非表示にする CSS を注入。
-  // ユーザは「ブラウザ用に自前で書いた viewer 描画」を、VSCode 拡張で開いた時は
-  // 拡張側のリッチ描画に任せたい、というユースケース。
-  const hasUserMxgraph = root.querySelectorAll('.mxgraph').length > 0;
-  if (hasUserMxgraph && diagramIds.length > 0) {
-    head.insertAdjacentHTML(
-      'beforeend',
-      `<style id="__drawio-in-html-hide-native">
-        /* 拡張側の描画(.drawio-slot)が動く環境では、ユーザ自前の .mxgraph 描画を隠す */
-        .mxgraph { display: none !important; }
-      </style>`
-    );
-  }
-
   // 警告検出
   const warnings: string[] = [];
   if (missingId) {

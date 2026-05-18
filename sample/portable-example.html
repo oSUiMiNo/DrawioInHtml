@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Drawio in HTML — ポータブルなサンプル</title>
+<title>Drawio in HTML — 新マーカー方式のサンプル</title>
 <style>
   body {
     font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
@@ -13,65 +13,64 @@
   }
   h1 { border-bottom: 2px solid #1e6fff; padding-bottom: 6px; }
   code { background: rgba(127,127,127,0.12); padding: 2px 6px; border-radius: 4px; }
-  .note {
-    background: rgba(255,180,0,0.08);
-    border-left: 4px solid #f1c40f;
-    padding: 10px 14px;
-    border-radius: 4px;
-    margin: 16px 0;
-  }
-  .mxgraph { border: 1px dashed rgba(127,127,127,0.3); margin: 16px 0; }
 </style>
 </head>
 <body>
 
-<h1>ポータブルなサンプル（ブラウザでも見える書き方）</h1>
+<h1>新マーカー方式（v0.3+）のサンプル</h1>
 
 <p>
-  このHTMLは <strong>ブラウザで直接開いても図が表示される</strong> ように書かれています。
-  VSCode の Drawio in HTML 拡張で開いた場合は、拡張側のリッチ描画（リサイズ追随・拡大・編集）に切り替わります。
+  v0.3 から、HTML 内に書くマーカーは <strong>HTML 標準寄りの一般的な書き方</strong>
+  <code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code> に変わりました。
 </p>
 
-<div class="note">
-  <strong>仕組み</strong>：
-  ブラウザ用の描画コード（公式 viewer-static.min.js + <code>&lt;div class="mxgraph"&gt;</code>）と、
-  拡張が編集対象を識別するためのマーカー（<code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code>）を
-  両方書きます。拡張で開いた時は、自前 mxgraph div が自動で隠され、拡張のリッチ描画が動きます。
-</div>
+<p>
+  拡張で開いた時の挙動は v0.2.x と完全に同じ：本拡張のリッチ描画（リサイズ追随・テーマ追従・拡大・編集）と
+  ホバー時の「✏️ 編集」ボタンが動きます。
+</p>
 
-<h2>図1: シンプルなノード</h2>
+<h2>図1: ノード1つ</h2>
 
-<!-- ブラウザ用：CDN viewer を読み込み（拡張で開いた時も読み込まれるが、自前divは隠されるので無害） -->
-<script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
-
-<!-- ブラウザ用の描画ホスト（mxgraph div） -->
-<div class="mxgraph" style="max-width:100%;border:1px solid #ccc;" data-mxgraph='{"highlight":"#0000ff","nav":true,"resize":true,"toolbar":null,"edit":"_blank","xml":"<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><mxCell id=\"2\" value=\"Hello Portable\" style=\"rounded=0;whiteSpace=wrap;html=1;\" vertex=\"1\" parent=\"1\"><mxGeometry x=\"40\" y=\"40\" width=\"160\" height=\"60\" as=\"geometry\"/></mxCell></root></mxGraphModel>"}'>
-</div>
-
-<!-- 拡張用の編集マーカー（ブラウザは type="application/xml" を無視するので影響なし） -->
-<script type="application/xml" data-drawio-id="hello-portable">
+<script type="application/xml" data-drawio-id="hello">
 <mxGraphModel>
   <root>
     <mxCell id="0"/>
     <mxCell id="1" parent="0"/>
-    <mxCell id="2" value="Hello Portable" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+    <mxCell id="2" value="Hello v0.3" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
       <mxGeometry x="40" y="40" width="160" height="60" as="geometry"/>
     </mxCell>
   </root>
 </mxGraphModel>
 </script>
 
-<h2>使い方</h2>
-<ol>
-  <li>ブラウザでこのHTMLをダブルクリックすると、jsdelivr/diagrams.net CDN から viewer が読まれて図が見える</li>
-  <li>VSCode（Drawio in HTML 拡張）で開くと、自前 mxgraph div が自動で隠され、拡張側のリッチ描画＋編集ボタンが出る</li>
-  <li>編集して保存すると、<code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code> の中身が書き換わる</li>
-</ol>
+<h2>図2: 複数ノード</h2>
 
-<p>
-  <em>※ 自前 mxgraph div の <code>data-mxgraph</code> 属性内の XML と、マーカーの XML は同じ内容を二重に書く必要があります（手動同期）。
-  これが煩わしい場合は、マーカーだけ書いて拡張専用ドキュメントにする選択も可能。</em>
-</p>
+<script type="application/xml" data-drawio-id="flow">
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="a" value="A" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;" vertex="1" parent="1">
+      <mxGeometry x="40" y="40" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="b" value="B" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;" vertex="1" parent="1">
+      <mxGeometry x="220" y="40" width="100" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e1" style="endArrow=classic;html=1;" edge="1" parent="1" source="a" target="b">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
+</script>
+
+<h2>書き方の決まり（v0.3+）</h2>
+
+<ul>
+  <li><code>type="application/xml"</code> を指定（HTML標準）</li>
+  <li><code>data-drawio-id="一意な名前"</code> を必ず付ける</li>
+  <li>中身は <code>&lt;mxGraphModel&gt;</code> または <code>&lt;mxfile&gt;&lt;diagram&gt;&lt;mxGraphModel&gt;</code> どちらでも</li>
+  <li>v0.2.x の旧マーカー（<code>type="application/drawio+xml"</code> + <code>data-diagram-id</code>）も引き続き動作</li>
+</ul>
 
 </body>
 </html>
