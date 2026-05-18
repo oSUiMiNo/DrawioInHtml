@@ -428,31 +428,32 @@ flowchart TB
 <div id="diagram-pack3" class="drawio-host"></div>
 <div class="drawio-hint">この図をクリック → 拡大表示 → 鉛筆アイコンで draw.io エディタへ。編集後は XML をエクスポートしてこの HTML の <code>#drawio-pack3-xml</code> へ貼り戻す</div>
 <script type="application/xml" id="drawio-pack3-xml">
-<mxfile host="app.diagrams.net" modified="2026-05-17T00:00:00.000Z" version="24.0.0" type="device">
+<mxfile host="embed.diagrams.net">
   <diagram name="Pack3Layer" id="pack3layer">
-    <mxGraphModel dx="900" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="320" math="0" shadow="0">
+    <mxGraphModel dx="838" dy="2475" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="320" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="L1" value="&lt;b&gt;Layer 1&lt;/b&gt;&lt;br/&gt;パック取込&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;.pack ファイルをローカル展開&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#7da6ff;strokeWidth=2;fontColor=#e7eaef;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="40" y="80" width="220" height="120" as="geometry" />
+        <mxCell id="L1" parent="1" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#7da6ff;strokeWidth=2;fontColor=#e7eaef;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" value="&lt;b&gt;Layer 1&lt;/b&gt;&lt;br/&gt;パック取込&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;.pack ファイルをローカル展開&lt;/span&gt;" vertex="1">
+          <mxGeometry height="120" width="220" x="40" y="80" as="geometry" />
         </mxCell>
-        <mxCell id="L2" value="&lt;b&gt;Layer 2&lt;/b&gt;&lt;br/&gt;個別 DL&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;BeforeDL ⇔ AfterDL&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#ffba6a;strokeWidth=2;fontColor=#ffd58a;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="340" y="80" width="220" height="120" as="geometry" />
+        <mxCell id="L2" parent="1" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#ffba6a;strokeWidth=2;fontColor=#ffd58a;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" value="&lt;b&gt;Layer 2&lt;/b&gt;&lt;br/&gt;個別 DL&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;BeforeDL ⇔ AfterDL&lt;/span&gt;" vertex="1">
+          <mxGeometry height="120" width="220" x="340" y="80" as="geometry" />
         </mxCell>
-        <mxCell id="L3" value="&lt;b&gt;Layer 3&lt;/b&gt;&lt;br/&gt;シーン配置&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;Materialize でスポーン&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#7fd1a0;strokeWidth=2;fontColor=#e7eaef;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="640" y="80" width="220" height="120" as="geometry" />
+        <mxCell id="L3" parent="1" style="rounded=1;arcSize=12;fillColor=#1e242c;strokeColor=#7fd1a0;strokeWidth=2;fontColor=#e7eaef;fontSize=14;align=center;verticalAlign=middle;html=1;whiteSpace=wrap;" value="&lt;b&gt;Layer 3&lt;/b&gt;&lt;br/&gt;シーン配置&lt;br/&gt;&lt;span style=&quot;font-size:11px;color:#9aa3ad&quot;&gt;Materialize でスポーン&lt;/span&gt;" vertex="1">
+          <mxGeometry height="120" width="220" x="640" y="80" as="geometry" />
         </mxCell>
-        <mxCell id="E1" value="展開後 Pack.Actives に登録" style="endArrow=classic;html=1;strokeColor=#9aa3ad;strokeWidth=2;fontColor=#9aa3ad;fontSize=12;edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="L1" target="L2">
+        <mxCell id="E1" edge="1" parent="1" source="L1" style="endArrow=classic;html=1;strokeColor=#9aa3ad;strokeWidth=2;fontColor=#9aa3ad;fontSize=12;edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="L2" value="展開後 Pack.Actives に登録">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="E2" value="AfterDL に入ると候補化" style="endArrow=classic;html=1;strokeColor=#9aa3ad;strokeWidth=2;fontColor=#9aa3ad;fontSize=12;edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="L2" target="L3">
+        <mxCell id="E2" edge="1" parent="1" source="L2" style="endArrow=classic;html=1;strokeColor=#9aa3ad;strokeWidth=2;fontColor=#9aa3ad;fontSize=12;edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="L3" value="AfterDL に入ると候補化">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
 </mxfile>
+
 </script>
 
 <table>

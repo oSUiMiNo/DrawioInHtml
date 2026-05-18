@@ -133,10 +133,8 @@
         nav: false,
         resize: true,
         'auto-fit': true,
-        // auto-crop: true だと要素bboxにきつくcropされて、エッジラベルが
-        // 要素の上に重なって表示される（編集画面ではcropしないので正常）。
-        // false にしてページ寸法ベースで表示し、エッジラベルの居場所を確保する。
-        'auto-crop': false,
+        // 要素bbox基準でタイトに描画（ページ寸法の空白を切り捨てる）
+        'auto-crop': true,
         center: true,
         border: computeBorder(entry.mxgraphDiv),
         editable: false,
