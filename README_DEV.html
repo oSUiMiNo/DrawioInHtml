@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Drawio in HTML — 開発者向けドキュメント</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #222;
+    --muted: #666;
+    --accent: #1e6fff;
+    --accent-bg: #eaf2ff;
+    --warn-bg: #fff8e1;
+    --warn-border: #f1c40f;
+    --ok-bg: #e8f6ee;
+    --ok-border: #2ecc71;
+    --code-bg: #f1f3f5;
+    --border: #ddd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.75;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+  h1 {
+    font-size: 1.9em;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 8px;
+    margin-top: 0;
+  }
+  h2 {
+    font-size: 1.4em;
+    margin-top: 2.4em;
+    padding: 8px 12px;
+    background: var(--accent-bg);
+    border-left: 5px solid var(--accent);
+  }
+  h3 {
+    font-size: 1.1em;
+    margin-top: 1.6em;
+    color: var(--accent);
+  }
+  p { margin: 0.6em 0; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    font-family: Consolas, "Courier New", monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 14px 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.88em;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: transparent; padding: 0; }
+  .callout {
+    border-left: 5px solid var(--ok-border);
+    background: var(--ok-bg);
+    padding: 12px 16px;
+    margin: 1em 0;
+    border-radius: 4px;
+  }
+  .callout.warn { border-color: var(--warn-border); background: var(--warn-bg); }
+  .callout strong { display: block; margin-bottom: 4px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+    background: white;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--accent-bg); }
+  ul, ol { padding-left: 1.6em; }
+  li { margin: 0.3em 0; }
+  .flow {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-family: Consolas, monospace;
+    font-size: 0.9em;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  kbd {
+    background: #e8eaed;
+    border: 1px solid #c3c8cd;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: Consolas, monospace;
+    font-size: 0.88em;
+  }
+  footer {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+
+<p style="text-align:right; margin-top:0; color: var(--muted); font-size: 0.9em;">本ドキュメントは日本語版のみ。英語版は日本語版完成後に整備予定。</p>
+
+<h1>Drawio in HTML — 開発者向けドキュメント</h1>
+
+<p>
+  本ファイルは「拡張機能を改修したい・コントリビュートしたい・内部の動きを理解したい」開発者向けの技術ドキュメント。
+  使い方を知りたい一般ユーザーは <a href="./README.ja.md">README.ja.md</a> を参照してください。
+</p>
+
+<div class="callout">
+  <strong>本ファイル自体が拡張機能のショーケース</strong>
+  下のアーキテクチャ図は <code>&lt;script type="application/xml" data-drawio-id="..."&gt;</code> として本HTMLに直接埋め込まれている。本拡張機能で本ファイルを開いている場合、テキストフロー図の下に Drawio 図が描画されているはず。ホバーすると右上に 🔍/✏️ アイコンが現れる。
+</div>
+
+<h2>技術的位置づけ</h2>
+
+<p>
+  Drawio in HTML は、VSCode の <strong>Custom Text Editor + Webview Panel</strong> 二段構えで Drawio 埋め込み HTML を扱う拡張機能。
+</p>
+
+<ul>
+  <li><strong>プレビュー側</strong>：<code>CustomTextEditorProvider</code> を使い、ユーザの HTML 本文をそのまま WebView に表示しつつ、HTML 内の Drawio マーカーを <code>&lt;div class="drawio-slot"&gt;</code> に置換して同梱 viewer (<code>viewer-static.min.js</code>) で SVG レンダリング。</li>
+  <li><strong>編集側</strong>：「✏️」を押すと <code>WebviewPanel</code> が <code>ViewColumn.Beside</code> に開き、その中の iframe で <code>embed.diagrams.net</code>（公式 Drawio オンラインエディタ）をロード。<code>postMessage</code> で <code>init → load → save → exit</code> をブリッジ。</li>
+  <li><strong>保存</strong>：Drawio 側の save を受信したら、拡張ホストが <code>htmlPatcher</code> で該当 <code>&lt;script&gt;</code> の中身だけを書き換え、<code>WorkspaceEdit + doc.save()</code> でディスクへ自動永続化。</li>
+</ul>
+
+<p>
+  Drawio エディタ機能を持つ既存 VSCode 拡張（hediet.vscode-drawio 等）には依存していない。本拡張機能は完全に独立。
+</p>
+
+<h2>対応マーカー仕様</h2>
+
+<p>
+  拡張機能が編集対象として認識する <code>&lt;script&gt;</code> パターンは 3 種類。<code>src/htmlPatcher.ts</code> の <code>extractDrawioBlocks</code> がこの 3 つを順に走査する。
+</p>
+
+<h3>パターン A: 新マーカー（v0.3+ 推奨）</h3>
+
+<pre><code>&lt;script type="application/xml" data-drawio-id="X"&gt;XML&lt;/script&gt;</code></pre>
+
+<ul>
+  <li><code>type="application/xml"</code> は HTML 標準の未知タイプ扱い → ブラウザは中身を実行しない（安全）</li>
+  <li><code>data-drawio-id</code> が編集識別子（同一HTML内で一意）</li>
+  <li>ブラウザで直接開いた時は何も描画されない（拡張機能専用）</li>
+</ul>
+
+<h3>パターン B: 自前 mount JS パターン（id 属性）</h3>
+
+<pre><code>&lt;script type="application/xml" id="X"&gt;
+&lt;mxfile&gt;...&lt;/mxfile&gt;
+&lt;/script&gt;</code></pre>
+
+<ul>
+  <li>中身が <code>&lt;mxfile&gt;</code> または <code>&lt;mxGraphModel&gt;</code> で始まる場合のみ Drawio として認識（汎用 XML データの誤認を防ぐため）</li>
+  <li><code>id</code> 属性が編集識別子になる</li>
+  <li>「ブラウザ側で自前の <code>mountDrawio()</code> 関数を書いて id 経由で読み出す」という一般的な書き方に対応</li>
+</ul>
+
+<h3>パターン C: 旧マーカー（v0.2.x 互換、後方互換維持）</h3>
+
+<pre><code>&lt;script type="application/drawio+xml" data-diagram-id="X"&gt;XML&lt;/script&gt;</code></pre>
+
+<ul>
+  <li><code>type="application/drawio+xml"</code> は拡張機能専用</li>
+  <li>v0.2.x までこの形式が標準だった。v0.3 以降も描画＋編集をフルサポート（破壊的変更なし）</li>
+</ul>
+
+<h3>ポータブル書き方（B. パターン or A. 併用）</h3>
+
+<p>
+  「ブラウザでも図を見たい」場合、ユーザ自身が <code>viewer-static.min.js</code> を CDN から読み込んで <code>&lt;div class="mxgraph"&gt;</code> を書き、加えて拡張認識用のマーカーを置く：
+</p>
+
+<pre><code>&lt;script src="https://viewer.diagrams.net/js/viewer-static.min.js"&gt;&lt;/script&gt;
+&lt;div class="mxgraph" data-mxgraph='{"xml":"...","toolbar":null}'&gt;&lt;/div&gt;
+&lt;script type="application/xml" data-drawio-id="architecture"&gt;
+&lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt;
+&lt;/script&gt;</code></pre>
+
+<p>
+  本拡張機能で開いた時の挙動：
+</p>
+
+<ul>
+  <li>ユーザ自前の <code>&lt;div class="mxgraph"&gt;</code> は CSS <code>.mxgraph:not(.drawio-rendered) { display: none }</code> で自動非表示</li>
+  <li>ユーザ自前の <code>&lt;script src=".../viewer-static.min.js"&gt;</code> は <code>previewHtmlBuilder</code> が DOM から削除（二重ロード防止）</li>
+  <li>拡張描画 slot だけが見える</li>
+</ul>
+
+<h2>アーキテクチャ概略</h2>
+
+<script type="application/xml" data-drawio-id="architecture">
+<mxfile host="embed.diagrams.net">
+  <diagram id="readme-architecture" name="アーキテクチャ">
+    <mxGraphModel dx="900" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Drawio in HTML — 内部アーキテクチャ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="20" width="340" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="preview" value="プレビュータブ&#10;Custom Text Editor&#10;&#10;・HTML本文をそのまま表示&#10;・Drawio script タグをインライン描画&#10;・「✏️編集」「🔍拡大」ボタン" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="280" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="editor" value="編集タブ&#10;WebviewPanel (ViewColumn.Beside)&#10;&#10;・embed.diagrams.net iframe&#10;・Drawio 公式エディタで編集&#10;・保存→XMLを拡張ホストへ送信" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="280" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="host" value="拡張ホスト (Node.js)&#10;&#10;・editorProvider.ts: プレビュー WebView 生成&#10;・previewHtmlBuilder.ts: HTML加工&#10;  (CSP注入・slot置換・相対URL変換)&#10;・editorPanelManager.ts: 編集タブ管理&#10;・htmlPatcher.ts: 保存往復の XML 差し替え" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="460" y="160" width="340" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="htmlfile" value="HTML ファイル&#10;(単一ファイル完結)&#10;&#10;script タグの中に&#10;mxGraphModel XML を埋め込み" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF9B2;strokeColor=#000000;align=left;verticalAlign=top;fontSize=11;spacingTop=8;spacingLeft=10;size=14;" vertex="1" parent="1">
+          <mxGeometry x="560" y="380" width="320" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge1" value="postMessage&#10;(openEditor 等)" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.3;align=center;" edge="1" parent="1" source="preview" target="host">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge2" value="postMessage&#10;(save XML)" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.7;align=center;" edge="1" parent="1" source="editor" target="host">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge3" value="WorkspaceEdit&#10;doc.save()" style="endArrow=classic;startArrow=none;html=1;rounded=0;fontSize=10;exitX=0.5;exitY=1;entryX=0.5;entryY=0;align=center;" edge="1" parent="1" source="host" target="htmlfile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+</script>
+
+<div class="flow">[VSCode]
+ ├─ プレビュータブ（CustomTextEditor）           ← HTML本文+Drawioインライン表示
+ │   └─ Webview "preview"
+ │        ├─ ユーザのHTML本文をベースにレンダリング（&lt;head&gt;/&lt;body&gt; 保持）
+ │        ├─ &lt;meta CSP&gt;、preview.css、viewer-static.min.js、preview.js を注入
+ │        ├─ Drawio script タグを &lt;div class="drawio-slot"&gt; に置換
+ │        ├─ 相対パスの &lt;img&gt;、&lt;link&gt;、&lt;a&gt; 等を webview.asWebviewUri() で自動変換
+ │        └─ slot 内に viewer SVG を生成 / ホバー時オーバーレイ 🔍/✏️
+ │              └─ クリック → 拡張本体へ postMessage
+ │
+ └─ 編集タブ（WebviewPanel, ViewColumn.Beside）  ← 1図1タブ
+     └─ Webview "editor"
+          └─ embed.diagrams.net iframe で Drawio 公式エディタ
+                └─ 保存時に postMessage で XML を拡張本体へ送る
+                      └─ 拡張本体 (htmlPatcher) が &lt;script&gt; の中身を書き換え
+                            └─ doc.save() でディスクへ自動保存</div>
+
+<h2>ファイル構成</h2>
+
+<table>
+  <thead>
+    <tr><th>パス</th><th>役割</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>src/extension.ts</code></td><td>拡張のエントリポイント（<code>activate</code>、コマンド登録）</td></tr>
+    <tr><td><code>src/editorProvider.ts</code></td><td>プレビュー用 <code>CustomTextEditorProvider</code>。WebView生成・XML差分送信</td></tr>
+    <tr><td><code>src/previewHtmlBuilder.ts</code></td><td>ユーザHTMLにCSP/JS注入、Drawio script の slot 化、相対URL変換（純粋関数）</td></tr>
+    <tr><td><code>src/editorPanelManager.ts</code></td><td>編集タブの <code>WebviewPanel</code> ライフサイクル管理、保存反映</td></tr>
+    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の <code>&lt;script&gt;</code> 抽出・置換（純粋関数。3マーカー対応）</td></tr>
+    <tr><td><code>media/preview.js</code> / <code>preview.css</code></td><td>プレビュー側WebView（slot 内 SVG 描画、ホバー、拡大、テーマ追従）</td></tr>
+    <tr><td><code>media/editor.js</code> / <code>editor.css</code></td><td>編集タブ側WebView（Drawioエディタとの postMessage ブリッジ）</td></tr>
+    <tr><td><code>media/viewer-static.min.js</code></td><td>Drawio公式ビューアー（同梱。postinstallで自動取得）</td></tr>
+    <tr><td><code>scripts/fetch-viewer.js</code></td><td>viewer-static.min.js を CDN から取得するスクリプト</td></tr>
+    <tr><td><code>package.json</code></td><td>拡張機能マニフェスト、コマンド・キーバインド・メニュー</td></tr>
+  </tbody>
+</table>
+
+<h2>ソースからの開発</h2>
+
+<pre><code>git clone https://github.com/oSUiMiNo/DrawioInHtml.git
+cd DrawioInHtml
+npm install            # postinstall で viewer-static.min.js (~3.6 MB) が自動取得される
+npm run compile
+# VSCode でフォルダを開いて F5（Extension Development Host が起動）</code></pre>
+
+<p>動作確認手順：</p>
+
+<ol>
+  <li>F5 で Extension Development Host が立ち上がる</li>
+  <li>適当な HTML ファイル（Drawio script タグを含む）を開き、右クリック → Open With → Drawio HTML Editor</li>
+  <li>図がインライン表示され、ホバーで 🔍/✏️ が出ることを確認</li>
+  <li>✏️ を押すと右側に編集タブが開き、<code>embed.diagrams.net</code> がロードされる</li>
+  <li>編集して保存 → 元の HTML が自動更新される</li>
+</ol>
+
+<h2>viewer-static.min.js の取り扱い</h2>
+
+<p>
+  本拡張機能は Drawio 公式の <code>viewer-static.min.js</code> をリポジトリに同梱しており、ネット非依存でプレビュー表示できる。
+  編集側は <code>embed.diagrams.net</code> をオンラインで使うため、編集時のみネット必須。
+</p>
+
+<h3>同梱のしくみ</h3>
+
+<ul>
+  <li><code>scripts/fetch-viewer.js</code> が <code>https://viewer.diagrams.net/js/viewer-static.min.js</code> からダウンロードして <code>media/viewer-static.min.js</code> に保存</li>
+  <li><code>package.json</code> の <code>postinstall</code> フックで <code>npm install</code> 時に自動実行</li>
+  <li>既存ファイルがあり 100KB 以上なら冪等にスキップ</li>
+  <li>取得失敗時は exit 1。CIで気づけるようにしている</li>
+</ul>
+
+<h3>Drawio 本家がアップデートされたら？</h3>
+
+<table>
+  <thead>
+    <tr><th>機能</th><th>更新方式</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>編集（embed.diagrams.net）</td>
+      <td>jgraph がサーバ側を更新するので<strong>自動で最新版</strong>になる。ただし <code>postMessage</code> プロトコル（<code>init/load/save/exit</code>）が変わると <code>media/editor.js</code> の橋渡しが壊れる可能性あり（プロトコルは長年安定）</td>
+    </tr>
+    <tr>
+      <td>プレビュー描画（viewer-static.min.js）</td>
+      <td>同梱なので<strong>自動では更新されない</strong>。<code>npm run fetch-viewer</code> で再取得（既存ファイルがあるとスキップされるため、一旦削除してから実行）→ 再ビルド → <code>vsce publish</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>CSP 仕様（previewHtmlBuilder の挙動）</h2>
+
+<p>
+  ユーザHTMLの既存 <code>&lt;meta http-equiv="Content-Security-Policy"&gt;</code> は削除し、拡張機能側で以下の CSP を強制注入：
+</p>
+
+<pre><code>default-src 'none';
+img-src ${webview.cspSource} https: data: blob: vscode-webview-resource:;
+style-src ${webview.cspSource} 'unsafe-inline' https:;
+font-src ${webview.cspSource} data: blob: https:;
+script-src ${webview.cspSource} 'unsafe-eval' 'unsafe-inline' https:;
+connect-src ${webview.cspSource} blob: data: https:;
+worker-src ${webview.cspSource} blob: https:;
+child-src blob: https:;
+frame-src https:;</code></pre>
+
+<div class="callout warn">
+  <strong>v0.2.3 以降のセキュリティトレードオフ</strong>
+  <code>'unsafe-inline'</code> と <code>https:</code> を許可しているため、ユーザHTML内のインラインスクリプトや CDN スクリプトが <strong>そのまま実行される</strong>。Mermaid 等の CDN ライブラリを動かすための仕様。
+  nonce は使っていない（CSP3 仕様で <code>'unsafe-inline'</code> と nonce が共存すると nonce が優先され、ユーザのインラインスクリプトが動かなくなる）。
+  この仕様は <a href="./README.ja.md#-セキュリティに関する注意">README.ja.md のセキュリティ注意</a> でエンドユーザに明示している。
+</div>
+
+<h2>保存往復の postMessage プロトコル</h2>
+
+<table>
+  <thead>
+    <tr><th>方向</th><th>イベント</th><th>意味</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>iframe → editor.js</td><td><code>init</code></td><td>Drawio エディタ起動完了。拡張側から XML を <code>load</code> する合図</td></tr>
+    <tr><td>editor.js → iframe</td><td><code>load</code></td><td>編集対象 XML を渡す（<code>autosave: 0</code>）</td></tr>
+    <tr><td>iframe → editor.js</td><td><code>save</code></td><td>保存ボタン押下時、新しい XML を含む</td></tr>
+    <tr><td>editor.js → 拡張ホスト</td><td><code>save</code></td><td>同 XML を <code>EditorPanelManager</code> へ転送</td></tr>
+    <tr><td>拡張ホスト</td><td>—</td><td><code>htmlPatcher.replaceDrawioXml</code> で該当 <code>&lt;script&gt;</code> を書き換え、<code>WorkspaceEdit + doc.save()</code></td></tr>
+    <tr><td>iframe → editor.js</td><td><code>exit</code></td><td>編集タブを閉じる合図</td></tr>
+  </tbody>
+</table>
+
+<p>
+  外部編集（ユーザが HTML を別エディタで書き換えた等）への追従は <code>EditorPanelManager.onDocumentChanged</code> が担当。
+  自分の save で発火した変更を区別するため、<code>entry.suppressNextChange</code> フラグで一度だけ無視する。
+</p>
+
+<h2>テーマ追従の仕組み</h2>
+
+<ul>
+  <li><code>preview.css</code> を <strong>CSP meta の直後</strong>（=ユーザ <code>&lt;style&gt;</code> よりも前）に注入。同じ specificity (0,0,1) ならユーザ指定が後勝ちで尊重される設計</li>
+  <li>ユーザが未指定のときだけ <code>body { background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); }</code> が効く</li>
+  <li><code>&lt;meta name="color-scheme" content="light dark"&gt;</code> をユーザ未指定時のみ自動付与（スクロールバー・フォームコントロールもテーマ追従）</li>
+  <li>Drawio 描画自体も <code>prefers-color-scheme: dark</code> を検出して <code>dark-mode: true</code> を viewer に渡す（v0.3.6 以降）。SVG 背景もダーク化される</li>
+</ul>
+
+<h2>トラブルシューティング（開発側）</h2>
+
+<h3>Output channel "Drawio HTML"</h3>
+
+<p>
+  拡張機能の WebView 側 (<code>preview.js</code> / <code>editor.js</code>) からのログは <code>postMessage('log', level, message)</code> 経由で拡張ホストに送られ、<code>vscode.window.createOutputChannel('Drawio HTML')</code> に出力される。
+  描画エラー、<code>GraphViewer</code> 未定義、SVG 生成失敗などはここに記録される。<code>level: 'error'</code> なら自動でパネルが開く。
+</p>
+
+<h3>npm install で viewer 取得が失敗する</h3>
+
+<ul>
+  <li><code>postinstall</code> でネット切断・プロキシなどにより失敗するとインストール自体は完了するが <code>media/viewer-static.min.js</code> が存在しない</li>
+  <li>確認：<code>ls -la media/viewer-static.min.js</code> でファイル存在＆サイズ（実測 3.8MB 程度）を見る</li>
+  <li>再取得：手動で <code>node scripts/fetch-viewer.js</code> 実行、または上記 URL からダウンロードして所定位置に配置</li>
+</ul>
+
+<h3>viewer の二重ロード</h3>
+
+<ul>
+  <li>症状：図が極端に小さい、編集ボタンが出ない、描画位置がずれる</li>
+  <li>原因：ユーザHTMLが CDN から <code>viewer-static.min.js</code> をロードしており、拡張同梱版と競合</li>
+  <li>対策：<code>previewHtmlBuilder</code> が <code>viewer-static.min.js</code> を src に含む <code>&lt;script&gt;</code> を DOM から削除する（v0.3.3 以降）。ソースHTMLは無変更</li>
+</ul>
+
+<h3>編集タブが blank</h3>
+
+<ul>
+  <li>ネット切断・社内プロキシで <code>embed.diagrams.net</code> がブロックされている可能性</li>
+  <li>ブラウザの DevTools（VSCode 上では F1 → "Open Webview Developer Tools"）で iframe のエラーを確認</li>
+</ul>
+
+<h3>HTML タブが dirty マークになる</h3>
+
+<ul>
+  <li>通常は <code>EditorPanelManager.applySave</code> 内の <code>doc.save()</code> が走るので dirty にならない</li>
+  <li>稀に失敗するとユーザに警告ダイアログが出る。手動で Ctrl+S すれば確実に永続化</li>
+</ul>
+
+<h2>拡張機能の公開フロー</h2>
+
+<h3>Marketplace へ publish</h3>
+
+<pre><code># 1. package.json の version を上げる（必須）
+# 2. CHANGELOG.md に新バージョン項目を追加
+# 3. 必要なら README.md など同梱対象ファイルを更新
+npm run compile
+npx vsce publish</code></pre>
+
+<div class="callout warn">
+  <strong>README は .vsix 同梱版が表示される</strong>
+  Marketplace ページの README は GitHub リポジトリを直接見ているのではなく、<code>vsce publish</code> 時に <code>.vsix</code> に同梱された <code>README.md</code> が表示される。GitHub に push しただけでは Marketplace の表示は更新されない。<strong>README の修正を Marketplace に反映するには新バージョンで再 publish する必要がある</strong>。
+</div>
+
+<h3>同梱対象（.vscodeignore で除外していないもの）</h3>
+
+<ul>
+  <li><code>out/*.js</code>：TypeScript ビルド成果物</li>
+  <li><code>media/*</code>：viewer 含む WebView 資産</li>
+  <li><code>README.md</code> / <code>CHANGELOG.md</code> / <code>LICENSE</code> / <code>package.json</code></li>
+  <li>必要な <code>node_modules/</code>（<code>vsce</code> が <code>npm list --production</code> で判定）</li>
+</ul>
+
+<h3>同梱しない（.vscodeignore で除外）</h3>
+
+<ul>
+  <li><code>src/*.ts</code>、<code>tsconfig.json</code>：TypeScript ソース</li>
+  <li><code>README.ja.md</code> / <code>README_DEV.html</code>：開発者向け／日本語版（.vscodeignore で除外）</li>
+  <li><code>sample/</code>、<code>Test.html</code>、<code>MyDocs/</code>、<code>.claude/</code>：開発時資産</li>
+</ul>
+
+<h2>関連リンク</h2>
+
+<ul>
+  <li><a href="https://github.com/oSUiMiNo/DrawioInHtml">GitHub リポジトリ</a></li>
+  <li><a href="https://marketplace.visualstudio.com/items?itemName=Maku.drawio-in-html">VSCode Marketplace ページ</a></li>
+  <li><a href="./CHANGELOG.md">CHANGELOG.md</a>（バージョン履歴）</li>
+  <li><a href="./README.ja.md">README.ja.md</a>（ユーザー向けドキュメント）</li>
+  <li><a href="https://github.com/jgraph/drawio">drawio (jgraph)</a> — <code>viewer-static.min.js</code> の本家</li>
+  <li><a href="https://embed.diagrams.net/">embed.diagrams.net</a> — 編集エディタの本家</li>
+</ul>
+
+<footer>
+  Drawio in HTML — Developer documentation
+</footer>
+
+</body>
+</html>
