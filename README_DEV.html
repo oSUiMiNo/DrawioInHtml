@@ -455,6 +455,14 @@ frame-src https:;</code></pre>
   描画エラー、<code>GraphViewer</code> 未定義、SVG 生成失敗などはここに記録される。<code>level: 'error'</code> なら自動でパネルが開く。
 </p>
 
+<h3>拡張機能を更新したのに新バージョンで動かない</h3>
+
+<ul>
+  <li>症状：拡張機能タブのバージョン表示は最新（例 v0.5.0）なのに、プレビューでは旧版の挙動が続いている</li>
+  <li>原因：プレビュータブが開いた状態だと VSCode の Extension Host を停止できず、古いプロセスが動き続ける。「<code>Extension host was not stopped because of veto</code>」が VSCode のログに出ているのがサイン</li>
+  <li>対策：<kbd>Ctrl+Shift+P</kbd> → <code>Developer: Reload Window</code> でウィンドウごとリロード。プレビュータブを閉じてから更新するのが確実</li>
+</ul>
+
 <h3>npm install で viewer 取得が失敗する</h3>
 
 <ul>
