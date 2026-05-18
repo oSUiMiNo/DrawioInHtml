@@ -30,12 +30,14 @@ body.drawio-has-fullscreen {
   overflow: hidden;
 }
 
-/* Drawio 描画スロット */
+/* Drawio 描画スロット
+   背景は transparent でユーザHTMLの本文背景に溶け込ませる
+   （Mermaid 等の周辺要素とテーマが揃う） */
 .drawio-slot {
   position: relative;
   border: 1px solid rgba(127, 127, 127, 0.3);
   border-radius: 6px;
-  background: white;
+  background: transparent;
   overflow: auto;
   margin: 12px 0;
   box-sizing: border-box;
@@ -59,7 +61,7 @@ body.drawio-has-fullscreen {
   padding: 24px;
   text-align: center;
   font-style: italic;
-  background: white;
+  background: transparent;
 }
 
 /* オーバーレイ：通常時非表示、hover or fullscreen で表示 */
@@ -110,7 +112,7 @@ body.drawio-has-fullscreen {
   background: #1177bb;
 }
 
-/* 拡大時は画面全体に */
+/* 拡大時は画面全体に。背景はVSCodeテーマ追従（ダーク時に白く光らない） */
 .drawio-slot.drawio-fullscreen {
   position: fixed;
   top: 0;
@@ -121,7 +123,7 @@ body.drawio-has-fullscreen {
   border-radius: 0;
   border: none;
   margin: 0;
-  background: white;
+  background: var(--vscode-editor-background, white);
 }
 
 .drawio-slot.drawio-fullscreen .drawio-slot-host {

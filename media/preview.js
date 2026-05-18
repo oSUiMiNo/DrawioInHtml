@@ -110,6 +110,17 @@
     ro.observe(mxgraphDiv);
   }
 
+  // ダークモード判定：
+  // - ユーザHTMLが <body style="background:..."> 等で明示していない場合は VSCode テーマに追従
+  // - 既に prefers-color-scheme: dark なら viewer の SVG もダーク（白背景を消す）
+  function isDarkMode() {
+    try {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch {
+      return false;
+    }
+  }
+
   function renderViewer(entry, xml) {
     entry.mxgraphDiv.innerHTML = '';
     if (!xml || !xml.trim()) {
@@ -139,6 +150,8 @@
         border: computeBorder(entry.mxgraphDiv),
         editable: false,
         'check-visible-state': false,
+        // ダークテーマ追従：viewer に dark-mode を渡すと SVG 内の白背景がダーク化される
+        'dark-mode': isDarkMode(),
       })
     );
     entry.mxgraphDiv.appendChild(div);

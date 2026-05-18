@@ -3,6 +3,15 @@
 本拡張機能のすべての注目すべき変更はこのファイルに記録される。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に準拠する。
 
+## [0.3.6] - 2026-05-18
+
+### Added
+- **Drawio描画のダークテーマ追従**：VSCode がダークテーマ（または OS の `prefers-color-scheme: dark`）のとき、Drawio viewer に `dark-mode: true` を渡して SVG 内部の白背景もダーク化。周囲のユーザHTML本文（ダーク背景）と一体感が出る
+
+### Changed
+- `media/preview.css` の `.drawio-slot` 背景を `white` → `transparent` に変更。ユーザHTML本文の背景（VSCode テーマ追従またはユーザ `<style>` 指定）にスロット枠が溶け込むようになった
+- `.drawio-empty`（空図プレースホルダ）と `.drawio-fullscreen`（拡大表示）の背景も透過/テーマ追従に変更。ダークモード時に白い箱が浮かない
+
 ## [0.3.5] - 2026-05-18
 
 ### Reverted
