@@ -3,6 +3,20 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.0] - 2026-05-18
+
+### Breaking
+- **Extension-only markers are no longer recognized.** Starting in v0.5, the only supported marker is `<script type="application/xml" id="X">` whose body starts with `<mxfile>` or `<mxGraphModel>` — the standard HTML5 inline-data pattern that browsers ignore and user-side JS can read via `document.getElementById('X').textContent`.
+- The previous `<script type="application/xml" data-drawio-id="X">` (extension-only attribute) and `<script type="application/drawio+xml" data-diagram-id="X">` (v0.2.x legacy marker) are now ignored. Existing files written in those forms will show no Drawio diagram in the preview until they are migrated.
+
+### Migration
+- Replace `data-drawio-id="X"` or `data-diagram-id="X"` with `id="X"`. The diagram XML body (`<mxfile>...</mxfile>` or `<mxGraphModel>...</mxGraphModel>`) is unchanged.
+- For files that also want to render in a plain browser, pair the script with a user-side `<div class="mxgraph">` host plus a CDN-loaded `viewer-static.min.js` and a small mount script. The bundled `README_DEV.html` is an example.
+
+### Changed
+- `src/htmlPatcher.ts` and `src/previewHtmlBuilder.ts` simplified — only one pattern to maintain.
+- `README_DEV.html` showcase rewrites the embedded architecture diagram to the new portable form, so the diagram now renders in a plain browser too.
+
 ## [0.4.0] - 2026-05-18
 
 ### Changed

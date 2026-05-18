@@ -2,7 +2,7 @@
   "name": "drawio-in-html",
   "displayName": "Drawio in HTML",
   "description": "Preview HTML files inline in VSCode with embedded Drawio diagrams rendered as live SVG, then edit each diagram in a side tab and auto-save back to the same HTML file.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "Maku",
   "license": "MIT",
   "icon": "media/icon.png",
