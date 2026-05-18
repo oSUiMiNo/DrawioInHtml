@@ -11,7 +11,6 @@ type PreviewToHostMsg =
 type HostToPreviewMsg = {
   type: 'load';
   blocks: { diagramId: string; xml: string }[];
-  missingId: boolean;
 };
 
 export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider {
@@ -73,11 +72,9 @@ export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider
 
     const sendBlocks = (): void => {
       const blocks = extractDrawioBlocks(document.getText());
-      const missingId = blocks.some((b) => !b.diagramId);
       const msg: HostToPreviewMsg = {
         type: 'load',
-        blocks: blocks.filter((b) => b.diagramId),
-        missingId,
+        blocks: blocks.map((b) => ({ diagramId: b.diagramId, xml: b.xml })),
       };
       webviewPanel.webview.postMessage(msg);
     };
@@ -91,7 +88,7 @@ export class DrawioHtmlEditorProvider implements vscode.CustomTextEditorProvider
         return;
       }
       const blocks = extractDrawioBlocks(e.document.getText());
-      const currentIds = blocks.filter((b) => b.diagramId).map((b) => b.diagramId);
+      const currentIds = blocks.map((b) => b.diagramId);
       const idsChanged =
         currentIds.length !== lastDiagramIds.length ||
         currentIds.some((id, i) => id !== lastDiagramIds[i]);

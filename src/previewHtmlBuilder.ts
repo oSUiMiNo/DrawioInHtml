@@ -1,12 +1,9 @@
 import * as vscode from 'vscode';
 import { parse, HTMLElement } from 'node-html-parser';
 
-// New marker (v0.3+): standard application/xml type, identified by data-drawio-id.
-const NEW_MARKER_TYPE = 'application/xml';
-const NEW_MARKER_ID_ATTR = 'data-drawio-id';
-// Legacy marker (v0.2.x compatibility): extension-specific type.
-const OLD_MARKER_TYPE = 'application/drawio+xml';
-const OLD_MARKER_ID_ATTR = 'data-diagram-id';
+// v0.5+ marker: standard <script type="application/xml" id="X"> whose body
+// starts with <mxfile> or <mxGraphModel>. Browser-portable and HTML5 standard.
+const MARKER_TYPE = 'application/xml';
 
 export interface BuildOptions {
   rawHtml: string;
@@ -18,7 +15,6 @@ export interface BuildOptions {
 export interface BuildResult {
   html: string;
   diagramIds: string[];
-  missingId: boolean;
   warnings: string[];
 }
 
@@ -66,7 +62,6 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     return {
       html: `<!DOCTYPE html><html><head></head><body>${escapeText(rawHtml)}</body></html>`,
       diagramIds: [],
-      missingId: false,
       warnings: ['Failed to parse the HTML structure.'],
     };
   }
@@ -142,48 +137,21 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   rewriteRelativeUrl(root, 'iframe', 'src', documentDir, webview);
 
   // Replace Drawio <script> tags with slot divs.
-  // Recognized patterns:
-  //   1. <script type="application/xml" data-drawio-id="X"> — v0.3+ recommended
-  //   2. <script type="application/xml" id="X"> with body starting with <mxfile> or <mxGraphModel>
-  //      — generic self-mount pattern
-  //   3. <script type="application/drawio+xml" data-diagram-id="X"> — v0.2.x legacy
-  // Replacement: <div class="drawio-slot" data-diagram-id="X"></div> (unified internal form).
+  // Recognized pattern (v0.5+, the only one):
+  //   <script type="application/xml" id="X"> with body starting with <mxfile> or <mxGraphModel>
+  // Replacement: <div class="drawio-slot" data-diagram-id="X"></div>
+  // (The slot's data-diagram-id attribute is the internal key used by preview.js
+  //  and editorPanelManager; it does not need to match the user's authoring style.)
   const diagramIds: string[] = [];
-  let missingId = false;
 
-  for (const scriptEl of Array.from(root.querySelectorAll('script'))) {
-    const type = (scriptEl.getAttribute('type') ?? '').toLowerCase();
-    let diagramId: string | null = null;
+  for (const scriptEl of Array.from(root.querySelectorAll(`script[type="${MARKER_TYPE}"]`))) {
+    const idAttr = scriptEl.getAttribute('id');
+    if (!idAttr) continue;
+    const body = scriptEl.rawText.trim();
+    if (!isDrawioXmlSnippet(body)) continue;
 
-    if (type === NEW_MARKER_TYPE) {
-      // Pattern 1: data-drawio-id present.
-      const dataAttr = scriptEl.getAttribute(NEW_MARKER_ID_ATTR);
-      if (dataAttr) {
-        diagramId = dataAttr;
-      } else {
-        // Pattern 2: id attribute only — accept only when the body is Drawio XML.
-        const idAttr = scriptEl.getAttribute('id');
-        const body = scriptEl.rawText.trim();
-        if (idAttr && isDrawioXmlSnippet(body)) {
-          diagramId = idAttr;
-        }
-      }
-    } else if (type === OLD_MARKER_TYPE) {
-      // Pattern 3: legacy marker.
-      const oldId = scriptEl.getAttribute(OLD_MARKER_ID_ATTR);
-      if (oldId) {
-        diagramId = oldId;
-      } else {
-        missingId = true;
-        continue;
-      }
-    } else {
-      continue;
-    }
-
-    if (!diagramId) continue;
-    diagramIds.push(diagramId);
-    const slotHtml = `<div class="drawio-slot" data-diagram-id="${escapeAttr(diagramId)}"></div>`;
+    diagramIds.push(idAttr);
+    const slotHtml = `<div class="drawio-slot" data-diagram-id="${escapeAttr(idAttr)}"></div>`;
     scriptEl.replaceWith(slotHtml);
   }
 
@@ -202,22 +170,9 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     );
   }
 
-  // Detect warnings.
+  // No preview-time warnings are emitted in v0.5+. The previous warning about
+  // missing data-diagram-id only applied to the legacy marker, which is gone.
   const warnings: string[] = [];
-  if (missingId) {
-    warnings.push(
-      'Found <script type="application/drawio+xml"> without data-diagram-id; it cannot be previewed or edited.'
-    );
-  }
-
-  // Insert a warning banner at the top of <body>.
-  if (warnings.length > 0) {
-    const items = warnings.map((w) => `<div>${escapeText(w)}</div>`).join('');
-    body.insertAdjacentHTML(
-      'afterbegin',
-      `<div id="__drawio-in-html-warnings">${items}</div>`
-    );
-  }
 
   // Inject viewer-static.min.js and preview.js at the end of <body>.
   // Because the CSP includes 'unsafe-inline', the nonce attribute is omitted on purpose
@@ -239,7 +194,6 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   return {
     html: result,
     diagramIds,
-    missingId,
     warnings,
   };
 }
