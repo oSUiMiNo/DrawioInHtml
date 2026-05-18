@@ -130,36 +130,65 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   rewriteRelativeUrl(root, 'audio', 'src', documentDir, webview);
   rewriteRelativeUrl(root, 'iframe', 'src', documentDir, webview);
 
-  // Drawio script タグを slot div に置換（新旧両マーカー対応）
-  // 新マーカー：<script type="application/xml" data-drawio-id="X">
-  // 旧マーカー：<script type="application/drawio+xml" data-diagram-id="X">
-  // 置換後の slot は <div class="drawio-slot" data-diagram-id="X"></div>
-  // （preview.js 側は data-diagram-id 属性で識別するので、内部表現は一本化）
+  // Drawio script タグを slot div に置換
+  // 認識パターン：
+  //   1. <script type="application/xml" data-drawio-id="X"> — v0.3 推奨
+  //   2. <script type="application/xml" id="X"> 中身が <mxfile> or <mxGraphModel> — 自前 mount JS パターン
+  //   3. <script type="application/drawio+xml" data-diagram-id="X"> — v0.2.x 旧
+  // 置換後 slot：<div class="drawio-slot" data-diagram-id="X"></div>（内部表現は一本化）
   const diagramIds: string[] = [];
   let missingId = false;
 
   for (const scriptEl of Array.from(root.querySelectorAll('script'))) {
     const type = (scriptEl.getAttribute('type') ?? '').toLowerCase();
-    let idAttr: string | null = null;
+    let diagramId: string | null = null;
+
     if (type === NEW_MARKER_TYPE) {
-      idAttr = NEW_MARKER_ID_ATTR;
+      // パターン1: data-drawio-id 明示
+      const dataAttr = scriptEl.getAttribute(NEW_MARKER_ID_ATTR);
+      if (dataAttr) {
+        diagramId = dataAttr;
+      } else {
+        // パターン2: id 属性で識別（中身が Drawio XML の時だけ）
+        const idAttr = scriptEl.getAttribute('id');
+        const body = scriptEl.rawText.trim();
+        if (idAttr && isDrawioXmlSnippet(body)) {
+          diagramId = idAttr;
+        }
+      }
     } else if (type === OLD_MARKER_TYPE) {
-      idAttr = OLD_MARKER_ID_ATTR;
+      // パターン3: 旧マーカー
+      const oldId = scriptEl.getAttribute(OLD_MARKER_ID_ATTR);
+      if (oldId) {
+        diagramId = oldId;
+      } else {
+        missingId = true;
+        continue;
+      }
     } else {
       continue;
     }
-    const diagramId = scriptEl.getAttribute(idAttr) ?? '';
-    // 新マーカーの application/xml は他用途もありうるので、id 無しは静かにスキップ
-    // 旧マーカーは v0.2.x で id 無し警告を出していたので、互換のため警告
-    if (!diagramId) {
-      if (type === OLD_MARKER_TYPE) {
-        missingId = true;
-      }
-      continue;
-    }
+
+    if (!diagramId) continue;
     diagramIds.push(diagramId);
     const slotHtml = `<div class="drawio-slot" data-diagram-id="${escapeAttr(diagramId)}"></div>`;
     scriptEl.replaceWith(slotHtml);
+  }
+
+  // ユーザ自前の描画ホスト（<div class="mxgraph">、<div class="drawio-host">）を非表示にする CSS。
+  // 拡張描画 slot 内の .mxgraph は preview.js が動的に生成するため、それを除外する必要がある。
+  // CSS specificity: `.drawio-slot .mxgraph` (0,2,0) が `.mxgraph` (0,1,0) より勝つので
+  // slot 内は再表示される。
+  if (diagramIds.length > 0) {
+    head.insertAdjacentHTML(
+      'beforeend',
+      `<style id="__drawio-in-html-hide-native">
+        /* ユーザ自前の描画ホストを隠す（拡張側でリッチ描画するため二重表示を防ぐ） */
+        .mxgraph, .drawio-host { display: none !important; }
+        /* ただし拡張の slot 内に preview.js が生成する mxgraph は表示する */
+        .drawio-slot, .drawio-slot * { display: revert !important; }
+      </style>`
+    );
   }
 
   // 警告検出
@@ -240,6 +269,11 @@ function escapeText(s: string): string {
   return s.replace(/[&<>]/g, (c) => {
     return c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;';
   });
+}
+
+function isDrawioXmlSnippet(xml: string): boolean {
+  const head = xml.trimStart().slice(0, 64);
+  return /<mxfile\b/i.test(head) || /<mxGraphModel\b/i.test(head);
 }
 
 function generateNonce(): string {

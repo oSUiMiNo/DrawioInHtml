@@ -3,6 +3,21 @@
 本拡張機能のすべての注目すべき変更はこのファイルに記録される。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に準拠する。
 
+## [0.3.2] - 2026-05-18
+
+### Added
+- **id 属性ベースの認識**：`<script type="application/xml" id="X">` 形式（自前 mount JS で id 経由で読み出す一般的な書き方）でも、中身が `<mxfile>` または `<mxGraphModel>` で始まる場合は Drawio として認識し、拡張のリッチ描画＋編集機能を提供
+- ユーザ自前の `<div class="mxgraph">` / `<div class="drawio-host">` を非表示にする CSS を再導入。スコープを `.drawio-slot` 内は除外する形に厳密化したため、拡張描画の slot 内 mxgraph は表示される
+
+### Fixed
+- v0.3.1 で問題報告：「Test.html のような id 属性ベースの一般的な書き方」が拡張に認識されず、ユーザ自前の通常描画だけ動いてリッチ機能が活かされない不具合を解消
+
+### Compatibility
+- これでユーザは以下3パターンのどれを書いても拡張のリッチ描画＋編集が動く：
+  - `<script type="application/xml" data-drawio-id="X">XML</script>` （v0.3 推奨）
+  - `<script type="application/xml" id="X">XML</script>` （自前 mount JS パターン、中身が mxfile/mxGraphModel）
+  - `<script type="application/drawio+xml" data-diagram-id="X">XML</script>` （v0.2.x 旧）
+
 ## [0.3.1] - 2026-05-18
 
 ### Fixed
