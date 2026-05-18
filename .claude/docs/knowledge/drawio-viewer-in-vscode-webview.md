@@ -238,3 +238,25 @@ node-html-parser の `el.text` は **HTMLエンティティを自動デコード
 検証：v0.2.1 で発覚。`<script>` 内に **HTMLエンティティが含まれる XML を
 書く拡張機能ユーザは限定的だが、Drawioエディタが保存時に valueの中に文字列を
 持つ図を書き戻す可能性は十分にある**ので、根本対策として `.rawText` 採用が必須。
+
+### 実証検証（@xmldom/xmldom で根本対策の有効性を確認）
+`.rawText` 修正が「`<` 含みラベル」に対しても根本的に機能するかを、ブラウザの
+DOMParser と互換実装の `@xmldom/xmldom` で検証した（2026-05-18）。
+
+検証パターン：
+| ファイル | 含まれる特殊ケース | 検証結果 |
+|---------|------|---------|
+| `sample/demo.html` | 標準的 mxGraphModel（生のXML） | XMLパースエラーなし |
+| `sample/test-lt-label.html` | `value="&lt;button&gt; を押す"` 等 `&lt;`/`&gt;` 含みラベル | **XMLパースエラーなし** |
+| `README.html`（modified） | 標準的アーキテクチャ図 | XMLパースエラーなし |
+
+結論：`extractDrawioBlocks` が `.rawText` を使う限り、エンドユーザが
+Drawio エディタで普通に `<` `>` 含むラベル（例：「`<button>` を押す」）を書いて
+保存しても、再オープン・編集経路は根本的に安全。
+
+逆に**避けるべき XML パターン**（実験で破壊を確認）：
+- `value="...&lt;script type=&quot;application/drawio+xml&quot;&gt;..."`
+  → 連続したエンティティと `&quot;` の組合せ。何らかの経路で二重デコードが起き、
+     attribute boundary が壊れて「Unescaped '<' not allowed in attribute values」が出る。
+- これはユーザが手書きでこのような value を書いた場合のみ起き、Drawioエディタの
+  通常出力にはまず現れない。発生したら対症療法（value 内のエンティティ表現を平文化）で回避。
