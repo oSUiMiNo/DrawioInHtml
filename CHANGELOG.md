@@ -3,6 +3,20 @@
 本拡張機能のすべての注目すべき変更はこのファイルに記録される。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に準拠する。
 
+## [0.3.0] - 2026-05-18
+
+### Added
+- **新マーカー `<script type="application/xml" data-drawio-id="X">XML</script>` 採用**：HTML標準の type 値を使うのでブラウザで安全に無視される。ユーザは「ブラウザでも見える書き方」（自前 CDN viewer + mxgraph div）と併用できる
+- **ユーザ自前 `<div class="mxgraph">` の自動非表示**：拡張で開いた時はリッチ描画と二重表示にならないよう、ユーザの自前描画 div を自動で隠す CSS を注入
+- 新サンプル `sample/portable-example.html`：ブラウザ直接表示でも図が見えるパターンの実例
+
+### Changed
+- `htmlPatcher.extractDrawioBlocks` が新旧両マーカーを返すように拡張。`DrawioBlock.marker: 'new' | 'old'` で識別
+- `replaceDrawioXml` が新マーカー（application/xml + data-drawio-id）と旧マーカー（application/drawio+xml + data-diagram-id）の両方に対応
+
+### Compatibility
+- 旧マーカー（v0.2.x で使っていた `application/drawio+xml + data-diagram-id`）は引き続き**描画＋編集ともサポート**。破壊的変更なし
+
 ## [0.2.3] - 2026-05-18
 
 ### Added

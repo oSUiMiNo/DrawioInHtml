@@ -1,7 +1,12 @@
 import * as vscode from 'vscode';
 import { parse, HTMLElement } from 'node-html-parser';
 
-const DRAWIO_SCRIPT_TYPE = 'application/drawio+xml';
+// 新マーカー（v0.3+）：ブラウザ標準の application/xml を採用し、data-drawio-id で識別
+const NEW_MARKER_TYPE = 'application/xml';
+const NEW_MARKER_ID_ATTR = 'data-drawio-id';
+// 旧マーカー（v0.2.x 互換）：拡張独自 type
+const OLD_MARKER_TYPE = 'application/drawio+xml';
+const OLD_MARKER_ID_ATTR = 'data-diagram-id';
 
 export interface BuildOptions {
   rawHtml: string;
@@ -125,18 +130,31 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   rewriteRelativeUrl(root, 'audio', 'src', documentDir, webview);
   rewriteRelativeUrl(root, 'iframe', 'src', documentDir, webview);
 
-  // Drawio script タグを slot div に置換
+  // Drawio script タグを slot div に置換（新旧両マーカー対応）
+  // 新マーカー：<script type="application/xml" data-drawio-id="X">
+  // 旧マーカー：<script type="application/drawio+xml" data-diagram-id="X">
+  // 置換後の slot は <div class="drawio-slot" data-diagram-id="X"></div>
+  // （preview.js 側は data-diagram-id 属性で識別するので、内部表現は一本化）
   const diagramIds: string[] = [];
   let missingId = false;
-  for (const scriptEl of root.querySelectorAll('script')) {
+
+  for (const scriptEl of Array.from(root.querySelectorAll('script'))) {
     const type = (scriptEl.getAttribute('type') ?? '').toLowerCase();
-    if (type !== DRAWIO_SCRIPT_TYPE) {
+    let idAttr: string | null = null;
+    if (type === NEW_MARKER_TYPE) {
+      idAttr = NEW_MARKER_ID_ATTR;
+    } else if (type === OLD_MARKER_TYPE) {
+      idAttr = OLD_MARKER_ID_ATTR;
+    } else {
       continue;
     }
-    const diagramId = scriptEl.getAttribute('data-diagram-id') ?? '';
+    const diagramId = scriptEl.getAttribute(idAttr) ?? '';
+    // 新マーカーの application/xml は他用途もありうるので、id 無しは静かにスキップ
+    // 旧マーカーは v0.2.x で id 無し警告を出していたので、互換のため警告
     if (!diagramId) {
-      missingId = true;
-      scriptEl.remove();
+      if (type === OLD_MARKER_TYPE) {
+        missingId = true;
+      }
       continue;
     }
     diagramIds.push(diagramId);
@@ -144,7 +162,22 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     scriptEl.replaceWith(slotHtml);
   }
 
-  // 警告検出（v0.2.3 で CSP 緩和したため、インラインscript/外部CSS の警告は廃止）
+  // ユーザ自前の描画 div（<div class="mxgraph">）が同じ HTML 内に存在する場合、
+  // 拡張側の描画と二重表示になるので非表示にする CSS を注入。
+  // ユーザは「ブラウザ用に自前で書いた viewer 描画」を、VSCode 拡張で開いた時は
+  // 拡張側のリッチ描画に任せたい、というユースケース。
+  const hasUserMxgraph = root.querySelectorAll('.mxgraph').length > 0;
+  if (hasUserMxgraph && diagramIds.length > 0) {
+    head.insertAdjacentHTML(
+      'beforeend',
+      `<style id="__drawio-in-html-hide-native">
+        /* 拡張側の描画(.drawio-slot)が動く環境では、ユーザ自前の .mxgraph 描画を隠す */
+        .mxgraph { display: none !important; }
+      </style>`
+    );
+  }
+
+  // 警告検出
   const warnings: string[] = [];
   if (missingId) {
     warnings.push(

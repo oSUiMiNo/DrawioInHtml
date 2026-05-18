@@ -46,38 +46,54 @@ npm run compile
 
 ## HTMLへの埋め込み方
 
-```html
-<!DOCTYPE html>
-<html>
-<body>
-<h1>システム構成図</h1>
+### A. 拡張専用（VSCode で開く前提、最小記述）
 
-<script type="application/drawio+xml" data-diagram-id="architecture">
-<mxGraphModel dx="800" dy="600" grid="1" gridSize="10">
+```html
+<script type="application/xml" data-drawio-id="architecture">
+<mxGraphModel>
   <root>
-    <mxCell id="0" />
-    <mxCell id="1" parent="0" />
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
     <mxCell id="2" value="API" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
       <mxGeometry x="40" y="40" width="120" height="60" as="geometry"/>
     </mxCell>
   </root>
 </mxGraphModel>
 </script>
-
-<h2>もう1つの図</h2>
-<script type="application/drawio+xml" data-diagram-id="flow">
-<mxGraphModel>...</mxGraphModel>
-</script>
-</body>
-</html>
 ```
 
-### 重要な決まり
+- VSCode 拡張で開いた時：本拡張のリッチ描画 + 編集ボタン
+- ブラウザで直接開いた時：`type="application/xml"` はブラウザに無視されるので**何も表示されない**
 
-- 必ず `type="application/drawio+xml"` を指定（これがないと拡張は無視する）
-- 必ず `data-diagram-id="一意な名前"` を付ける（同一HTML内で重複不可、欠落していると赤帯警告）
-- 中身は `<mxGraphModel>...</mxGraphModel>` の生のXML、または `<mxfile><diagram><mxGraphModel>...</mxGraphModel></diagram></mxfile>` どちらでもOK
-- 一度Drawio側で編集して保存すると `<mxfile>` 形式に統一される
+### B. ポータブル（ブラウザでも描画される、推奨）
+
+ブラウザでも図を見たい場合、Drawio 公式 viewer-static.min.js を CDN から読み込んで `<div class="mxgraph">` を自前で書き、加えて拡張が認識するマーカー `<script type="application/xml" data-drawio-id="...">` を併記します。サンプル：`sample/portable-example.html`
+
+```html
+<script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+<div class="mxgraph" data-mxgraph='{"xml":"...","toolbar":null}'></div>
+<script type="application/xml" data-drawio-id="architecture">
+<mxGraphModel>...同じ内容のXML...</mxGraphModel>
+</script>
+```
+
+VSCode 拡張で開いた時は、ユーザ自前の `<div class="mxgraph">` は自動で隠され、拡張のリッチ描画に切り替わります。
+
+### C. 旧形式（v0.2.x 互換、引き続きサポート）
+
+```html
+<script type="application/drawio+xml" data-diagram-id="architecture">
+<mxGraphModel>...</mxGraphModel>
+</script>
+```
+
+v0.2.x までのフォーマット。VSCode 拡張で開いた時は描画＋編集ともサポート。ただし `type="application/drawio+xml"` は拡張独自で、ブラウザで直接開いても描画されない。
+
+### 共通の決まり
+
+- 編集対象の識別属性は同一HTML内で**一意**にする（A/Bなら `data-drawio-id="..."`、Cなら `data-diagram-id="..."`）
+- XMLは `<mxGraphModel>...</mxGraphModel>` または `<mxfile><diagram><mxGraphModel>...</mxGraphModel></diagram></mxfile>` どちらでもOK
+- 一度 Drawio エディタで編集・保存すると `<mxfile>` 形式に統一される
 
 ## 操作
 
