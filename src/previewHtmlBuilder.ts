@@ -91,16 +91,25 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     `child-src blob:`,
     `frame-src https://embed.diagrams.net`,
   ].join('; ');
+  // 1) CSP を <head> 先頭に挿入（最優先）
+  // 2) その直後（=ユーザ <style> より前）に preview.css を挿入。
+  //    同 specificity ならユーザ <style> が後勝ちで尊重される設計。
+  //    ユーザ未指定時のみ preview.css のテーマ追従が反映される。
+  // 3) color-scheme meta はユーザが未指定なら 'light dark' を自動付与
+  //    （スクロールバーやフォーム要素のテーマ追従）。
   head.insertAdjacentHTML(
     'afterbegin',
-    `<meta http-equiv="Content-Security-Policy" content="${escapeAttr(csp)}">`
+    `<meta http-equiv="Content-Security-Policy" content="${escapeAttr(csp)}">` +
+      `<link rel="stylesheet" href="${escapeAttr(previewCssUri)}">`
   );
 
-  // preview.css を <head> 末尾に注入
-  head.insertAdjacentHTML(
-    'beforeend',
-    `<link rel="stylesheet" href="${escapeAttr(previewCssUri)}">`
-  );
+  // color-scheme meta 自動付与（ユーザ既指定なら触らない）
+  const hasColorScheme = head
+    .querySelectorAll('meta')
+    .some((m) => (m.getAttribute('name') ?? '').toLowerCase() === 'color-scheme');
+  if (!hasColorScheme) {
+    head.insertAdjacentHTML('beforeend', '<meta name="color-scheme" content="light dark">');
+  }
 
   // 相対パス URL 変換
   rewriteRelativeUrl(root, 'img', 'src', documentDir, webview);

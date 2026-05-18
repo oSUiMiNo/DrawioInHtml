@@ -1,3 +1,15 @@
+/*
+  ユーザHTMLの背景色/前景色が未指定のときだけVSCodeテーマに追従する。
+  preview.css は <head> のユーザ <style> より「前」に挿入されるため、
+  同 specificity (0,0,1) なら後勝ちでユーザ指定が優先される。
+  ユーザが何も指定していなければ、このルールが活きてダーク/ライトに自動追従。
+*/
+body {
+  background: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  font-family: var(--vscode-font-family);
+}
+
 /* 警告バナー（拡張機能が検出した制約事項を本文先頭に表示） */
 #__drawio-in-html-warnings {
   background: #fff8e1;

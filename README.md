@@ -83,12 +83,31 @@ npm run compile
 
 | 動作 | 操作 |
 |------|------|
-| HTMLをプレビュー表示 | エクスプローラで右クリック → Open With → Drawio HTML Editor |
+| HTMLをプレビュー表示（ショートカット） | `Ctrl+Shift+V`（Mac: `Cmd+Shift+V`） |
+| HTMLをプレビュー表示（右クリック） | エクスプローラまたはエディタタブで右クリック → **「Drawio in HTML: プレビューで開く」** |
+| HTMLをプレビュー表示（旧来手順） | 右クリック → Open With → Drawio HTML Editor |
 | 図を拡大表示 | カードにホバー → 「🔍 拡大」 |
 | 拡大解除 | ESC または「✕ 縮小」 |
 | 図を編集 | カードにホバー → 「✏️ 編集」 |
 | 編集結果を保存 | Drawio画面左上の保存ボタン（💾）← HTMLにも自動保存される |
 | 通常のHTML編集に戻す | タブを閉じて、HTMLファイルを通常の Open（ダブルクリック）で開き直す |
+
+### デフォルトプレビューに設定する（任意）
+
+ダブルクリックで常に Drawio プレビューで開きたい場合、VSCode の `settings.json` に下記を追加：
+
+```json
+"workbench.editorAssociations": {
+  "*.html": "drawioInHtml.editor"
+}
+```
+
+元に戻したい時は同設定を削除するか、`"default"` に書き換え。
+
+### テーマ（ダーク／ライト）
+
+- VSCode のテーマ設定に**自動追従**
+- ユーザHTMLの `<style>` で `body { background: ... }` 等を明示している場合は、ユーザ指定が尊重される（強制上書きはしない）
 
 ## アーキテクチャ概略
 

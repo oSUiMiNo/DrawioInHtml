@@ -219,7 +219,9 @@ npm run compile
     <tr><th>動作</th><th>操作</th></tr>
   </thead>
   <tbody>
-    <tr><td>HTMLをプレビュー表示</td><td>エクスプローラで右クリック → Open With → Drawio HTML Editor</td></tr>
+    <tr><td>HTMLをプレビュー表示（ショートカット）</td><td><kbd>Ctrl+Shift+V</kbd>（Mac: <kbd>Cmd+Shift+V</kbd>）</td></tr>
+    <tr><td>HTMLをプレビュー表示（右クリック）</td><td>エクスプローラまたはエディタタブで右クリック → <strong>「Drawio in HTML: プレビューで開く」</strong></td></tr>
+    <tr><td>HTMLをプレビュー表示（旧来手順）</td><td>右クリック → Open With → Drawio HTML Editor</td></tr>
     <tr><td>図を拡大表示</td><td>カードにホバー → 「🔍 拡大」</td></tr>
     <tr><td>拡大解除</td><td><kbd>ESC</kbd> または「✕ 縮小」</td></tr>
     <tr><td>図を編集</td><td>カードにホバー → 「✏️ 編集」</td></tr>
@@ -227,6 +229,26 @@ npm run compile
     <tr><td>通常のHTML編集に戻す</td><td>タブを閉じて、HTMLファイルを通常の Open（ダブルクリック）で開き直す</td></tr>
   </tbody>
 </table>
+
+<h3>デフォルトプレビューに設定する（任意）</h3>
+
+<p>
+  ダブルクリックで常に Drawio プレビューで開きたい場合、VSCode の <code>settings.json</code> に下記を追加：
+</p>
+
+<pre><code>"workbench.editorAssociations": {
+  "*.html": "drawioInHtml.editor"
+}
+</code></pre>
+
+<p>元に戻したい時は同設定を削除するか、<code>"default"</code> に書き換え。</p>
+
+<h3>テーマ（ダーク／ライト）</h3>
+
+<ul>
+  <li>VSCode のテーマ設定に<strong>自動追従</strong></li>
+  <li>ユーザHTMLの <code>&lt;style&gt;</code> で <code>body { background: ... }</code> 等を明示している場合は、ユーザ指定が尊重される（強制上書きはしない）</li>
+</ul>
 
 <h2>アーキテクチャ概略</h2>
 

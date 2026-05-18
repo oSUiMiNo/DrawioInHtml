@@ -3,6 +3,17 @@
 本拡張機能のすべての注目すべき変更はこのファイルに記録される。
 フォーマットは [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) に準拠する。
 
+## [0.2.2] - 2026-05-18
+
+### Added
+- **テーマ追従**：プレビューがVSCodeのダーク／ライトテーマに自動追従。ユーザHTML側で `body { background: ... }` 等を明示している場合はそれを尊重（強制上書きしない）
+- **`<meta name="color-scheme">` 自動付与**：ユーザHTMLに未指定の場合のみ `light dark` を自動付与（スクロールバー・フォーム要素もテーマ追従）
+- **コマンド `drawioInHtml.openPreview`**：エクスプローラ右クリック、エディタタブ右クリック、コマンドパレット、`Ctrl+Shift+V`（Mac: `Cmd+Shift+V`）から1クリックでプレビュー起動
+- **デフォルトプレビュー化の手段**：VSCode 標準の `workbench.editorAssociations` 設定で `.html` のデフォルトを Drawio HTML Editor にできる（README に手順記載）
+
+### Changed
+- `previewHtmlBuilder`：preview.css の挿入位置をCSP直後（ユーザ `<style>` より前）に変更。これによりユーザCSSが後勝ちで尊重される
+
 ## [0.2.1] - 2026-05-18
 
 ### Fixed
