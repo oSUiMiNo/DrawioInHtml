@@ -3,6 +3,12 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.1] - 2026-05-19
+
+### Changed
+- README.md is now a full English user guide (was an English stub pointing at the Japanese version). Mirrors the structure and depth of README.ja.md so Marketplace visitors get the full picture without switching languages.
+- README_DEV.html (developer documentation) remains Japanese-only; an English translation is on the roadmap.
+
 ## [0.5.0] - 2026-05-18
 
 ### Breaking

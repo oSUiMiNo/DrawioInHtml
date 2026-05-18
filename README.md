@@ -1,28 +1,115 @@
 # Drawio in HTML
 
+**English** | [日本語](./README.ja.md)
+
 [![Version](https://img.shields.io/visual-studio-marketplace/v/Maku.drawio-in-html)](https://marketplace.visualstudio.com/items?itemName=Maku.drawio-in-html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-source-blue?logo=github)](https://github.com/oSUiMiNo/DrawioInHtml)
 
-> 🌐 **English documentation is not ready yet.** The full README is currently maintained in Japanese.
-> Please refer to **[README.ja.md](./README.ja.md)** for now. A proper English version is planned for a future release.
+A VSCode extension that previews HTML files in place and lets you view and edit embedded Drawio diagrams inline. Edits are auto-saved back into the same HTML file, so **one file holds both the document and its diagrams** — no separate `.drawio` files to keep in sync.
 
-A VSCode extension that previews HTML files inline and renders embedded Drawio diagrams as SVG. Each diagram can be edited in a side tab (powered by the official `embed.diagrams.net` editor) and is auto-saved back into the same HTML file — single-file delivery is preserved.
+## What it does
+
+- Renders the HTML body (headings, paragraphs, tables, images) as a live preview
+- Renders embedded Drawio diagrams inline at their original location
+- On hover, each diagram shows **🔍** (fullscreen) and **✏️** (edit) icons
+- Press ✏️ to open the official Drawio editor in a side tab
+- Saving in the editor automatically updates the source HTML on disk
+- Multiple diagrams per HTML file, each editable independently
+- Automatically follows VSCode's dark / light theme
+
+## Requirements
+
+- VSCode 1.85.0 or later
+- Internet access **only while editing** (the preview itself runs offline)
 
 ## Install
 
-Search `drawio-in-html` in the Extensions side bar, or:
+Search `drawio-in-html` in the Extensions side bar of VSCode, or:
 
 ```sh
 code --install-extension Maku.drawio-in-html
 ```
 
-## Documentation
+## How to embed a diagram in HTML
 
-- **End users (Japanese):** [README.ja.md](./README.ja.md)
-- **Developers / architecture (Japanese):** [README_DEV.html](./README_DEV.html) — open it with this extension to see an embedded Drawio architecture diagram.
-- **Changelog:** [CHANGELOG.md](./CHANGELOG.md)
+Put a block like this inside your HTML — the diagram is rendered in place:
 
-## License
+```html
+<script type="application/xml" id="my-diagram">
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="API" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="40" width="120" height="60" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
+</script>
+```
 
-MIT — see [LICENSE](./LICENSE).
+Notes:
+
+- The `id` value (`"my-diagram"` above) must be unique within the HTML file
+- The body can be either `<mxGraphModel>...</mxGraphModel>` or `<mxfile>...</mxfile>` — both are valid Drawio XML
+- The easiest workflow is to drop an empty `<script>` tag with an arbitrary `id` and start drawing from ✏️
+
+The marker is just the standard HTML5 inline-data-block usage, so browsers safely ignore it and it coexists with other content without side effects. **If you want the diagram to render in a plain browser as well**, add a small mount script that reads the same `id` — see the [developer documentation](./README_DEV.html) (Japanese) for a working example.
+
+## Usage
+
+| What you want to do | How |
+|---|---|
+| Open the preview (shortcut) | `Ctrl+Shift+V` (Mac: `Cmd+Shift+V`) |
+| Open the preview (context menu) | Right-click in the Explorer or on the editor tab → **Drawio in HTML: Open Preview** |
+| Open the preview (other) | Right-click → Open With → Drawio HTML Editor |
+| Zoom a diagram | Hover the diagram → 🔍 |
+| Exit fullscreen | `ESC` or ✕ |
+| Edit a diagram | Hover the diagram → ✏️ |
+| Save your edits | The 💾 button in the Drawio editor — the HTML file is saved automatically too |
+| Back to plain HTML editing | Close the preview tab and reopen the file with double-click |
+
+### Make this preview the default for `.html` (optional)
+
+If you always want this preview when you double-click an HTML file, add the following to your VSCode `settings.json`:
+
+```json
+"workbench.editorAssociations": {
+  "*.html": "drawioInHtml.editor"
+}
+```
+
+Remove the entry to revert.
+
+## Theme
+
+- The preview automatically follows VSCode's dark / light theme.
+- If your HTML's `<style>` sets a background or text color explicitly, your styles win — the extension does not override them.
+
+## ⚠️ Security note
+
+This preview **executes any JavaScript embedded in the HTML you open** — this is necessary so that CDN libraries such as Mermaid can run inside the preview.
+
+That means **opening someone else's HTML, or HTML you found on the web, may execute its scripts** and could:
+
+- Make outbound requests to unknown sites
+- Send personal data to third parties
+- Hijack browser behavior (the kind of attack known as XSS)
+
+**To stay safe:**
+
+- Only open **HTML you wrote yourself**
+- For untrusted HTML, inspect the source in a plain text editor before opening it in the preview
+
+Think of this preview as having the same level of risk as opening the HTML directly in a browser. "Just a VSCode preview" does not imply extra safety.
+
+## For developers
+
+Internal architecture, marker spec, and contribution notes are in [README_DEV.html](./README_DEV.html) (currently Japanese only). Open it with this extension to see an embedded Drawio architecture diagram in action.
+
+## License & credits
+
+- The bundled `viewer-static.min.js` is from [drawio (jgraph/drawio)](https://github.com/jgraph/drawio)
+- Editing is powered by [embed.diagrams.net](https://embed.diagrams.net/) inside an iframe
+- Source code is MIT licensed — see [LICENSE](./LICENSE)
