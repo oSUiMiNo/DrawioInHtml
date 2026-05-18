@@ -191,23 +191,26 @@
   ブラウザで開いた時にも図を表示したい場合は、CDN viewer と自前マウント JS を組み合わせます。本ドキュメント下部のアーキテクチャ図がこの構成の生きた例です。
 </p>
 
-<pre><code>&lt;script src="https://viewer.diagrams.net/js/viewer-static.min.js"&gt;&lt;/script&gt;
-
-&lt;div class="mxgraph" id="diagram-host-architecture"&gt;&lt;/div&gt;
+<pre><code>&lt;div class="mxgraph" id="diagram-host-architecture"&gt;&lt;/div&gt;
 
 &lt;script type="application/xml" id="architecture"&gt;
 &lt;mxfile&gt;...&lt;/mxfile&gt;
 &lt;/script&gt;
 
+&lt;!-- viewer-static.min.js は data-mxgraph 属性経由で設定を受け取る。
+     viewer ロード前に同期で属性を付与しておけば、
+     DOMContentLoaded 時の auto processElements が拾って描画してくれる。 --&gt;
 &lt;script&gt;
-  document.addEventListener('DOMContentLoaded', () =&gt; {
-    const xml = document.getElementById('architecture').textContent;
-    const host = document.getElementById('diagram-host-architecture');
-    GraphViewer.createViewerForElement(host, null, {
-      xml, toolbar: null, 'auto-fit': true, center: true,
-    });
-  });
-&lt;/script&gt;</code></pre>
+  (function() {
+    var xml = document.getElementById('architecture').textContent.trim();
+    document.getElementById('diagram-host-architecture').setAttribute(
+      'data-mxgraph',
+      JSON.stringify({ xml: xml, toolbar: null, 'auto-fit': true, center: true })
+    );
+  })();
+&lt;/script&gt;
+
+&lt;script src="https://viewer.diagrams.net/js/viewer-static.min.js"&gt;&lt;/script&gt;</code></pre>
 
 <p>
   本拡張機能で開いた時の挙動：
@@ -225,8 +228,6 @@
 <p>
   下の図は本ドキュメント自身の「自前マウント」例です。ブラウザでも本拡張機能でも描画されます。
 </p>
-
-<script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 
 <div class="mxgraph" id="diagram-host-architecture" style="background: transparent;"></div>
 
@@ -275,35 +276,33 @@
 </mxfile>
 </script>
 
+<!-- 同期で data-mxgraph 属性を付与してから viewer をロード。
+     viewer-static.min.js は DOMContentLoaded 時に .mxgraph[data-mxgraph] を
+     自動 processElements するので、createViewerForElement の明示呼び出しは不要。
+     本拡張機能で開いた場合：
+       - viewer-static.min.js の <script src> は previewHtmlBuilder が削除（二重ロード防止）
+       - ホスト div は CSS .mxgraph:not(.drawio-rendered) で非表示
+       - 代わりに拡張描画スロットが描画される -->
 <script>
-  // ブラウザ用：上の <script id="architecture"> から XML を読んで描画する
-  // 本拡張機能で開いた場合は previewHtmlBuilder がこの自前マウントの viewer ロードを削除し、
-  // 拡張描画スロットを優先的に表示する。
   (function () {
-    function mount() {
-      var xmlScript = document.getElementById('architecture');
-      var host = document.getElementById('diagram-host-architecture');
-      if (!xmlScript || !host) return;
-      if (typeof GraphViewer === 'undefined') return; // CDN viewer 未ロード時は黙って何もしない
-      var xml = xmlScript.textContent || '';
-      GraphViewer.createViewerForElement(host, null, {
-        xml: xml,
-        toolbar: null,
-        lightbox: false,
-        nav: false,
-        'auto-fit': true,
-        'auto-crop': true,
-        center: true,
-        editable: false,
-      });
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', mount);
-    } else {
-      mount();
-    }
+    var xmlEl = document.getElementById('architecture');
+    var host = document.getElementById('diagram-host-architecture');
+    if (!xmlEl || !host) return;
+    host.setAttribute('data-mxgraph', JSON.stringify({
+      xml: (xmlEl.textContent || '').trim(),
+      toolbar: null,
+      lightbox: false,
+      nav: false,
+      'auto-fit': true,
+      'auto-crop': true,
+      center: true,
+      editable: false,
+      'check-visible-state': false,
+    }));
   })();
 </script>
+
+<script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 
 <div class="flow">[VSCode]
  ├─ プレビュータブ（CustomTextEditor）           ← HTML本文+Drawioインライン表示
