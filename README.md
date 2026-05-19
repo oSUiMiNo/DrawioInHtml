@@ -64,7 +64,7 @@ Notes:
 - The body can be either `<mxGraphModel>...</mxGraphModel>` or `<mxfile>...</mxfile>` — both are valid Drawio XML
 - The easiest workflow is to drop an empty `<script>` tag with an arbitrary `id` and start drawing from ✏️
 
-The marker is just the standard HTML5 inline-data-block usage, so browsers safely ignore it and it coexists with other content without side effects. **If you want the diagram to render in a plain browser as well**, add a small mount script that reads the same `id` — see the [developer documentation](./README_DEV.html) (Japanese) for a working example.
+The marker is just the standard HTML5 inline-data-block usage, so browsers safely ignore it and it coexists with other content without side effects. **If you want the diagram to render in a plain browser as well**, add a small mount script that reads the same `id` — see the [developer documentation](./README.dev.html) (Japanese) for a working example.
 
 ## Usage
 
@@ -115,7 +115,7 @@ Think of this preview as having the same level of risk as opening the HTML direc
 
 ## For developers
 
-Internal architecture, marker spec, and contribution notes are in [README_DEV.html](./README_DEV.html) (currently Japanese only). Open it with this extension to see an embedded Drawio architecture diagram in action.
+Internal architecture, marker spec, and contribution notes are in [README.dev.html](./README.dev.html) (currently Japanese only). Open it with this extension to see an embedded Drawio architecture diagram in action.
 
 ## License & credits
 

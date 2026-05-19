@@ -3,6 +3,11 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.3] - 2026-05-19
+
+### Changed
+- Renamed `README_DEV.html` → `README.dev.html` to align with the README family naming (`README.md`, `README.ja.md`, `README.dev.html`). All internal references, `.vscodeignore`, and Marketplace README links updated accordingly.
+
 ## [0.5.2] - 2026-05-19
 
 ### Changed
