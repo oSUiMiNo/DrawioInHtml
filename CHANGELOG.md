@@ -3,6 +3,11 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.4] - 2026-05-19
+
+### Fixed
+- **Drawio 編集タブを開いている時に HTML 本文をタイプするとカーソルが消える問題を修正。** `EditorPanelManager.onDocumentChanged` が文書変更のたび無条件で編集タブに `load` を postMessage しており、Drawio iframe が毎回リロードしてフォーカスを奪っていた。実際にその図の XML が変わった時だけ送るよう、`PanelEntry.lastSentXml` で前回送出 XML を保持して同値スキップに変更。
+
 ## [0.5.3] - 2026-05-19
 
 ### Changed

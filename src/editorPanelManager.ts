@@ -18,6 +18,11 @@ interface PanelEntry {
   documentUri: vscode.Uri;
   dispose: vscode.Disposable;
   suppressNextChange: boolean;
+  // Tracks the XML last delivered to the editor iframe. When the user types
+  // outside the diagram (e.g. editing HTML body text), the XML stays equal to
+  // this value, so we skip the postMessage and avoid reloading the Drawio
+  // iframe — which otherwise steals focus from the HTML tab on every keystroke.
+  lastSentXml: string;
 }
 
 function panelKey(uri: vscode.Uri, diagramId: string): string {
@@ -73,6 +78,7 @@ export class EditorPanelManager implements vscode.Disposable {
       diagramId,
       documentUri: document.uri,
       suppressNextChange: false,
+      lastSentXml: initialXml ?? '',
       dispose: panel.onDidDispose(() => {
         this.panels.delete(key);
       }),
@@ -82,6 +88,7 @@ export class EditorPanelManager implements vscode.Disposable {
     panel.webview.onDidReceiveMessage(async (raw: EditorToHostMsg) => {
       if (raw.type === 'ready') {
         const xml = this.findXml(document, diagramId) ?? '';
+        entry.lastSentXml = xml;
         const msg: HostToEditorMsg = { type: 'load', xml };
         panel.webview.postMessage(msg);
         return;
@@ -127,6 +134,9 @@ export class EditorPanelManager implements vscode.Disposable {
       return;
     }
     entry.suppressNextChange = true;
+    // Our own save is the new "last sent" XML — keeps the equality check in
+    // onDocumentChanged correct for subsequent unrelated keystrokes.
+    entry.lastSentXml = xml;
     const edit = new vscode.WorkspaceEdit();
     const fullRange = new vscode.Range(
       doc.positionAt(0),
@@ -164,6 +174,15 @@ export class EditorPanelManager implements vscode.Disposable {
       if (xml === undefined) {
         continue;
       }
+      // Skip when the diagram's XML did not actually change. The
+      // onDidChangeTextDocument event fires for every keystroke in the HTML
+      // tab, including edits to the document body that have nothing to do
+      // with the Drawio block; reloading the iframe in those cases steals
+      // focus from the HTML editor.
+      if (xml === entry.lastSentXml) {
+        continue;
+      }
+      entry.lastSentXml = xml;
       const msg: HostToEditorMsg = { type: 'load', xml };
       entry.panel.webview.postMessage(msg);
     }
