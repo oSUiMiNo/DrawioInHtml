@@ -17,6 +17,15 @@ A VSCode extension that previews HTML files in place and lets you view and edit 
 - Saving in the editor automatically updates the source HTML on disk
 - Multiple diagrams per HTML file, each editable independently
 - Automatically follows VSCode's dark / light theme
+- Diagrams automatically rescale to the editor width
+
+### Edit demo
+
+![Drawio edit demo](docs/img/drawio-edit-demo.gif)
+
+### Resize demo (adapts to window width)
+
+![Drawio resize demo](docs/img/drawio-resize-demo.gif)
 
 ## Requirements
 

@@ -3,6 +3,11 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.2] - 2026-05-19
+
+### Changed
+- README.md and README.ja.md now embed two demo GIFs (edit flow + window-width resize) so visitors can see the extension in action before installing. The GIFs live under `docs/img/` and are excluded from the `.vsix` package — Marketplace pulls them from the GitHub repository instead.
+
 ## [0.5.1] - 2026-05-19
 
 ### Changed

@@ -16,4 +16,5 @@ drawio_vscode_拡張機能の検討まとめ.html
 PUBLISH-STEPS.md
 MAINTENANCE.html
 README_DEV.html
+docs/**
 *.vsix
