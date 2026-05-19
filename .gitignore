@@ -8,3 +8,6 @@ media/viewer-static.min.js
 
 # Playwright MCP のセッションキャッシュ
 .playwright-mcp/
+
+# メンテナンス用情報（private repo oSUiMiNo/MaintenanceInfo に分離）
+MAINTENANCE.html

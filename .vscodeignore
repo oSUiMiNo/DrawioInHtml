@@ -14,7 +14,6 @@ sample/**
 scripts/**
 drawio_vscode_拡張機能の検討まとめ.html
 PUBLISH-STEPS.md
-MAINTENANCE.html
 README.dev.html
 docs/**
 *.vsix
