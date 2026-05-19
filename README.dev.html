@@ -234,32 +234,35 @@
 <script type="application/xml" id="architecture">
 <mxfile host="embed.diagrams.net">
   <diagram id="readme-architecture" name="アーキテクチャ">
-    <mxGraphModel dx="829" dy="1815" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" math="0" shadow="0">
+    <mxGraphModel dx="924" dy="1361" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" value="Drawio in HTML — 内部アーキテクチャ" vertex="1">
-          <mxGeometry height="30" width="340" x="280" y="20" as="geometry" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=25;fontStyle=1;textShadow=0;fontColor=#858585;" value="Drawio in HTML — 内部アーキテクチャ" vertex="1">
+          <mxGeometry height="30" width="480" x="210" y="20" as="geometry" />
         </mxCell>
-        <mxCell id="preview" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" value="プレビュータブ&#xa;Custom Text Editor&#xa;&#xa;・HTML本文をそのまま表示&#xa;・Drawio script タグをインライン描画&#xa;・「✏️編集」「🔍拡大」ボタン" vertex="1">
+        <mxCell id="preview" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;fontSize=15;spacingTop=8;spacingLeft=10;strokeWidth=3;" value="プレビュータブ&#xa;Custom Text Editor&#xa;&#xa;・HTML本文をそのまま表示&#xa;・Drawio script タグをインライン描画&#xa;・「✏️編集」「🔍拡大」ボタン" vertex="1">
           <mxGeometry height="140" width="280" x="60" y="80" as="geometry" />
         </mxCell>
-        <mxCell id="editor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" value="編集タブ&#xa;WebviewPanel (ViewColumn.Beside)&#xa;&#xa;・embed.diagrams.net iframe&#xa;・Drawio 公式エディタで編集&#xa;・保存→XMLを拡張ホストへ送信" vertex="1">
+        <mxCell id="editor" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;fontSize=15;spacingTop=8;spacingLeft=10;strokeWidth=3;" value="編集タブ&#xa;WebviewPanel (ViewColumn.Beside)&#xa;&#xa;・embed.diagrams.net iframe&#xa;・Drawio 公式エディタで編集&#xa;・保存→XMLを拡張ホストへ送信" vertex="1">
           <mxGeometry height="130" width="280" x="60" y="260" as="geometry" />
         </mxCell>
-        <mxCell id="host" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=12;spacingTop=8;spacingLeft=10;" value="拡張ホスト (Node.js)&#xa;&#xa;・editorProvider.ts: プレビュー WebView 生成&#xa;・previewHtmlBuilder.ts: HTML加工&#xa;  (CSP注入・slot置換・相対URL変換)&#xa;・editorPanelManager.ts: 編集タブ管理&#xa;・htmlPatcher.ts: 保存往復の XML 差し替え" vertex="1">
-          <mxGeometry height="160" width="340" x="460" y="160" as="geometry" />
-        </mxCell>
-        <mxCell id="htmlfile" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF9B2;strokeColor=#000000;align=left;verticalAlign=top;fontSize=11;spacingTop=8;spacingLeft=10;size=14;" value="HTML ファイル&#xa;(単一ファイル完結)&#xa;&#xa;script タグの中に&#xa;mxGraphModel XML を埋め込み" vertex="1">
-          <mxGeometry height="100" width="320" x="560" y="380" as="geometry" />
-        </mxCell>
-        <mxCell id="edge1" edge="1" parent="1" source="preview" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.3;align=center;" target="host" value="postMessage&#xa;(openEditor 等)">
+        <mxCell id="2" edge="1" parent="1" source="host" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="htmlfile" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="edge2" edge="1" parent="1" source="editor" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=10;exitX=1;exitY=0.5;entryX=0;entryY=0.7;align=center;" target="host" value="postMessage&#xa;(save XML)">
+        <mxCell id="host" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;fontSize=15;spacingTop=8;spacingLeft=10;strokeWidth=3;" value="拡張ホスト (Node.js)&#xa;&#xa;・editorProvider.ts: プレビュー WebView 生成&#xa;・previewHtmlBuilder.ts: HTML加工&#xa;  (CSP注入・slot置換・相対URL変換)&#xa;・editorPanelManager.ts: 編集タブ管理&#xa;・htmlPatcher.ts: 保存往復の XML 差し替え" vertex="1">
+          <mxGeometry height="160" width="340" x="480" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="htmlfile" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF9B2;strokeColor=#000000;align=left;verticalAlign=top;fontSize=15;spacingTop=8;spacingLeft=10;size=14;strokeWidth=3;" value="HTML ファイル&#xa;(単一ファイル完結)&#xa;&#xa;script タグの中に&#xa;mxGraphModel XML を埋め込み" vertex="1">
+          <mxGeometry height="110" width="320" x="490" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" edge="1" parent="1" source="preview" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=15;exitX=1;exitY=0.5;entryX=0;entryY=0.3;align=center;labelBackgroundColor=default;fontColor=light-dark(#858585,#EDEDED);strokeColor=#858585;strokeWidth=3;" target="host" value="postMessage&#xa;(openEditor 等)">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="edge3" edge="1" parent="1" source="host" style="endArrow=classic;startArrow=none;html=1;rounded=0;fontSize=10;exitX=0.5;exitY=1;entryX=0.5;entryY=0;align=center;" target="htmlfile" value="WorkspaceEdit&#xa;doc.save()">
+        <mxCell id="edge2" edge="1" parent="1" source="editor" style="endArrow=classic;startArrow=classic;html=1;rounded=0;fontSize=15;exitX=1;exitY=0.5;entryX=0;entryY=0.7;align=center;strokeWidth=3;strokeColor=#858585;fontColor=#858585;" target="host" value="postMessage&#xa;(save XML)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3" edge="1" parent="1" source="host" style="endArrow=classic;startArrow=none;html=1;rounded=0;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;align=center;fontColor=#858585;strokeWidth=3;strokeColor=#858585;" target="htmlfile" value="WorkspaceEdit&#xa;doc.save()">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
