@@ -42,38 +42,55 @@ code --install-extension Maku.drawio-in-html
 
 ## HTML への埋め込み方
 
-本拡張機能は **2 種類の埋め込み形式**を認識します。お好きな方を使えます。
+本拡張機能は **2 種類の埋め込み形式**を認識します。どちらでも同じ図が描画されます。
+以下の例はどれも下のような「A → B」の 2 ノードの図を描画します：
+
+```
+┌───┐      ┌───┐
+│ A │ ───▶ │ B │
+└───┘      └───┘
+```
 
 ### A. シンプル形式（id 属性付き script）
 
 ```html
-<script type="application/xml" id="my-diagram">
-<mxGraphModel>
-  <root>
-    <mxCell id="0"/>
-    <mxCell id="1" parent="0"/>
-    <mxCell id="2" value="API" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-      <mxGeometry x="40" y="40" width="120" height="60" as="geometry"/>
-    </mxCell>
-  </root>
-</mxGraphModel>
+<script type="application/xml" id="hello">
+<mxfile>
+  <diagram name="hello" id="hello">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="A" value="A" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="B" value="B" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="AB" edge="1" parent="1" source="A" target="B" style="endArrow=classic;html=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
 </script>
 ```
 
 - HTML5 標準の「インラインデータブロック」用法そのもの。ブラウザは中身を無視するので副作用なし
-- `id` の値（上の例では `"my-diagram"`）は同じ HTML ファイル内でユニークに
+- `id` の値は同じ HTML ファイル内でユニークに
 - まずは適当な `id` で空の `<script>` タグを置き、✏️ から Drawio エディタで描き始めるのが楽
 - ブラウザでも図を表示したい場合は同じ `id` を読み出す自前マウントを追加（[開発者向けドキュメント](./README.dev.html) 参照）
 
 ### B. Drawio 公式エクスポート形式（mxgraph div）
 
 ```html
-<div class="mxgraph" data-mxgraph='{"highlight":"#0000ff","nav":true,"resize":true,"xml":"<mxfile>...</mxfile>"}'></div>
+<div class="mxgraph" data-mxgraph='{"xml":"<mxfile><diagram name=\"hello\" id=\"hello\"><mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><mxCell id=\"A\" value=\"A\" style=\"rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;\" vertex=\"1\" parent=\"1\"><mxGeometry x=\"40\" y=\"40\" width=\"80\" height=\"40\" as=\"geometry\"/></mxCell><mxCell id=\"B\" value=\"B\" style=\"rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;\" vertex=\"1\" parent=\"1\"><mxGeometry x=\"200\" y=\"40\" width=\"80\" height=\"40\" as=\"geometry\"/></mxCell><mxCell id=\"AB\" edge=\"1\" parent=\"1\" source=\"A\" target=\"B\" style=\"endArrow=classic;html=1;\"><mxGeometry relative=\"1\" as=\"geometry\"/></mxCell></root></mxGraphModel></diagram></mxfile>"}'></div>
 <script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 ```
 
 - Drawio の「Extras → Edit Diagram → Publish → HTML」または「Embed → HTML」がそのまま出力するフォーマット
-- XML はホスト div の `data-mxgraph` 属性内に JSON 文字列として埋め込まれる
+- XML はホスト div の `data-mxgraph` 属性内に JSON 文字列として埋め込まれる（XML 中の `"` は `\"` でエスケープ）
 - **ブラウザでも本拡張機能でも、何の手直しもなく描画＆編集できる**
 - 識別子は div の `id` 属性。無ければ HTML 内の出現順で自動的に `drawio-mxgraph-1`, `drawio-mxgraph-2` … が割り当てられる
 - Drawio 公式ツールで作った HTML をそのまま VSCode で開けるのが利点

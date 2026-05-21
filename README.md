@@ -42,26 +42,43 @@ code --install-extension Maku.drawio-in-html
 
 ## How to embed a diagram in HTML
 
-The extension recognizes **two embed formats** — use whichever suits you.
+The extension recognizes **two embed formats** — both render the same diagram.
+The examples below all draw a minimal "A → B" two-node graph:
+
+```
+┌───┐      ┌───┐
+│ A │ ───▶ │ B │
+└───┘      └───┘
+```
 
 ### A. Simple form (script tag with id)
 
 ```html
-<script type="application/xml" id="my-diagram">
-<mxGraphModel>
-  <root>
-    <mxCell id="0"/>
-    <mxCell id="1" parent="0"/>
-    <mxCell id="2" value="API" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-      <mxGeometry x="40" y="40" width="120" height="60" as="geometry"/>
-    </mxCell>
-  </root>
-</mxGraphModel>
+<script type="application/xml" id="hello">
+<mxfile>
+  <diagram name="hello" id="hello">
+    <mxGraphModel>
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="A" value="A" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="B" value="B" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="AB" edge="1" parent="1" source="A" target="B" style="endArrow=classic;html=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
 </script>
 ```
 
 - Plain HTML5 inline-data-block usage — browsers ignore it, so no side effects
-- The `id` value (`"my-diagram"` above) must be unique within the HTML file
+- The `id` must be unique within the HTML file
 - Body can be either `<mxGraphModel>...</mxGraphModel>` or `<mxfile>...</mxfile>`
 - Easiest workflow: drop an empty `<script>` with an arbitrary `id` and start drawing from ✏️
 - To render in a plain browser too, add a mount script that reads the same `id` — see [developer docs](./README.dev.html) (Japanese)
@@ -69,12 +86,12 @@ The extension recognizes **two embed formats** — use whichever suits you.
 ### B. Drawio's official export form (mxgraph div)
 
 ```html
-<div class="mxgraph" data-mxgraph='{"highlight":"#0000ff","nav":true,"resize":true,"xml":"<mxfile>...</mxfile>"}'></div>
+<div class="mxgraph" data-mxgraph='{"xml":"<mxfile><diagram name=\"hello\" id=\"hello\"><mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><mxCell id=\"A\" value=\"A\" style=\"rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;\" vertex=\"1\" parent=\"1\"><mxGeometry x=\"40\" y=\"40\" width=\"80\" height=\"40\" as=\"geometry\"/></mxCell><mxCell id=\"B\" value=\"B\" style=\"rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;\" vertex=\"1\" parent=\"1\"><mxGeometry x=\"200\" y=\"40\" width=\"80\" height=\"40\" as=\"geometry\"/></mxCell><mxCell id=\"AB\" edge=\"1\" parent=\"1\" source=\"A\" target=\"B\" style=\"endArrow=classic;html=1;\"><mxGeometry relative=\"1\" as=\"geometry\"/></mxCell></root></mxGraphModel></diagram></mxfile>"}'></div>
 <script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
 ```
 
 - This is exactly what Drawio's "Extras → Edit Diagram → Publish → HTML" (or "Embed → HTML") emits
-- The XML lives as a JSON string inside the host div's `data-mxgraph` attribute
+- The XML lives as a JSON string inside the host div's `data-mxgraph` attribute (with `"` escaped as `\"`)
 - **Renders in both a plain browser and this extension with no edits at all**
 - Identifier is the div's `id` attribute. If absent, the extension auto-assigns `drawio-mxgraph-1`, `drawio-mxgraph-2`, ... in document order
 - Lets you take a Drawio-published HTML straight into VSCode for editing

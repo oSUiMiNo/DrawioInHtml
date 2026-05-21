@@ -3,6 +3,12 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.3] - 2026-05-22
+
+### Changed
+- README embed examples replaced with a minimal "A → B" two-node + one-edge diagram, identical across both supported forms. The previous one-cell example was unrelated between the two forms and harder to compare. Each form now demonstrates the *same* diagram so readers can see at a glance that the two markers are equivalent.
+- No code changes; the extension binary is unchanged from v0.6.2.
+
 ## [0.6.2] - 2026-05-22
 
 ### Changed
