@@ -160,14 +160,23 @@ function replaceMxgraphDivXml(
     }
 
     const decoded = decodeAttrValue(rawAttrValue);
-    let obj: unknown;
+    let obj: Record<string, unknown> | null = null;
     try {
-      obj = JSON.parse(decoded);
+      const parsed = JSON.parse(decoded);
+      if (parsed && typeof parsed === 'object') {
+        obj = parsed as Record<string, unknown>;
+      }
     } catch {
-      continue;
+      // Fall through with obj=null. We still want to be able to repair a
+      // file whose JSON has already been corrupted by a prior write cycle.
     }
-    if (!obj || typeof obj !== 'object') continue;
-    (obj as Record<string, unknown>).xml = newXml;
+    if (obj === null) {
+      // Reconstruct a minimal config so the write still succeeds. The visual
+      // options (highlight/nav/toolbar/...) are lost, but losing a few render
+      // tweaks beats refusing to save the user's diagram edits.
+      obj = {};
+    }
+    obj.xml = newXml;
     const newJson = JSON.stringify(obj);
 
     // Re-encode for the chosen outer quote so the attribute parses back.
@@ -185,23 +194,39 @@ function replaceMxgraphDivXml(
 }
 
 function decodeAttrValue(s: string): string {
+  // Order matters: decode `&#92;` (backslash) and other numeric/named entities
+  // BEFORE `&amp;`, so a literal `&` that was written as `&amp;` does not get
+  // mis-paired with following entity-looking sequences.
   return s
-    .replace(/&amp;/g, '&')
+    .replace(/&#92;/g, '\\')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'");
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
 }
 
 function escapeForAttr(value: string, outerQuote: string): string {
-  // Escape only the outer-quote character — that is enough to keep the
-  // attribute boundary intact. Other characters are HTML-safe in attribute
-  // values (raw `<`/`>` are tolerated by browsers inside attribute values).
+  // The JSON payload we write into data-mxgraph contains backslash escape
+  // sequences (`\"`, `\\`, `\n`, ...). node-html-parser, used elsewhere in
+  // this extension to read the same attribute, strips the `\` from any
+  // `\X` sequence in an attribute value — that quietly turns JSON's `\"`
+  // into a bare `"` and corrupts the next read cycle.
+  //
+  // To survive that round-trip, encode `\` as the numeric entity `&#92;` here
+  // and decode it back in decodeAttrValue. We must also encode `&` so the
+  // generated entity references are not themselves interpreted as further
+  // entity sequences in a later read.
+  //
+  // Order matters: encode `&` first, then `\`, then the outer quote.
+  let escaped = value.replace(/&/g, '&amp;').replace(/\\/g, '&#92;');
   if (outerQuote === '"') {
-    return value.replace(/"/g, '&quot;');
+    escaped = escaped.replace(/"/g, '&quot;');
+  } else {
+    escaped = escaped.replace(/'/g, '&#39;');
   }
-  return value.replace(/'/g, '&#39;');
+  return escaped;
 }
 
 function matchesType(attrs: string, type: string): boolean {

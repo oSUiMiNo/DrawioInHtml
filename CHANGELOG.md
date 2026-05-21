@@ -3,6 +3,12 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.1] - 2026-05-21
+
+### Fixed
+- **Critical**: Drawio's `<div class="mxgraph" data-mxgraph='{...}'>` blocks could be corrupted across edit cycles, eventually producing `diagram-id "drawio-mxgraph-N" was not found in the HTML.` errors and making the diagram unsavable. Root cause: node-html-parser's `getAttribute` silently strips `\` from `\X` sequences in attribute values, so the JSON's escaped quotes (`\"`) collapsed to bare `"` on the next read, breaking JSON.parse. The save-side writer now encodes `\` as the HTML numeric entity `&#92;` (and `&` as `&amp;`) before writing the attribute, and the corresponding decoder unwinds those entities on the way back, so JSON escape sequences survive any number of edit cycles.
+- The save path also reconstructs a minimal config when the existing data-mxgraph JSON is already corrupted, so an in-place repair succeeds on the next save instead of failing with "not found".
+
 ## [0.6.0] - 2026-05-21
 
 ### Added
