@@ -344,7 +344,7 @@
     <tr><td><code>src/editorProvider.ts</code></td><td>プレビュー用 <code>CustomTextEditorProvider</code>。WebView生成・XML差分送信</td></tr>
     <tr><td><code>src/previewHtmlBuilder.ts</code></td><td>ユーザHTMLにCSP/JS注入、Drawio script の slot 化、相対URL変換（純粋関数）</td></tr>
     <tr><td><code>src/editorPanelManager.ts</code></td><td>編集タブの <code>WebviewPanel</code> ライフサイクル管理、保存反映</td></tr>
-    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の <code>&lt;script&gt;</code> 抽出・置換（純粋関数。v0.5+ は id パターン一本）</td></tr>
+    <tr><td><code>src/htmlPatcher.ts</code></td><td>HTML内の Drawio ブロックの抽出・置換（純粋関数。v0.6+ で 2 経路：形式 A の <code>&lt;script type="application/xml" id="X"&gt;</code> と 形式 B の <code>&lt;div class="mxgraph" data-mxgraph='{...}'&gt;</code>）</td></tr>
     <tr><td><code>media/preview.js</code> / <code>preview.css</code></td><td>プレビュー側WebView（slot 内 SVG 描画、ホバー、拡大、テーマ追従）</td></tr>
     <tr><td><code>media/editor.js</code> / <code>editor.css</code></td><td>編集タブ側WebView（Drawioエディタとの postMessage ブリッジ）</td></tr>
     <tr><td><code>media/viewer-static.min.js</code></td><td>Drawio公式ビューアー（同梱。postinstallで自動取得）</td></tr>
@@ -365,7 +365,7 @@ npm run compile
 
 <ol>
   <li>F5 で Extension Development Host が立ち上がる</li>
-  <li>適当な HTML ファイル（<code>&lt;script type="application/xml" id="..."&gt;</code> + <code>&lt;mxfile&gt;</code> を含む）を開き、右クリック → Open With → Drawio HTML Editor</li>
+  <li>適当な HTML ファイル（形式 A の <code>&lt;script type="application/xml" id="..."&gt;</code> または 形式 B の <code>&lt;div class="mxgraph" data-mxgraph='{...}'&gt;</code> どちらか）を開き、右クリック → Open With → Drawio HTML Editor</li>
   <li>図がインライン表示され、ホバーで 🔍/✏️ が出ることを確認</li>
   <li>✏️ を押すと右側に編集タブが開き、<code>embed.diagrams.net</code> がロードされる</li>
   <li>編集して保存 → 元の HTML が自動更新される</li>
@@ -447,6 +447,36 @@ frame-src https:;</code></pre>
 <p>
   外部編集（ユーザが HTML を別エディタで書き換えた等）への追従は <code>EditorPanelManager.onDocumentChanged</code> が担当。
   自分の save で発火した変更を区別するため、<code>entry.suppressNextChange</code> フラグで一度だけ無視する。
+</p>
+
+<h2>形式 B（mxgraph div）の書き戻しの落とし穴（v0.6.1 で対策済）</h2>
+
+<p>
+  形式 B では XML がホスト div の <code>data-mxgraph</code> 属性内に <strong>JSON 文字列として</strong>埋め込まれている。書き戻し時には JSON の <code>xml</code> フィールドだけを差し替えて他のフィールド（<code>toolbar</code>、<code>highlight</code>、<code>nav</code> など）はそのまま保持する。
+</p>
+
+<div class="callout warn">
+  <strong>node-html-parser の <code>getAttribute</code> がバックスラッシュを取り除く</strong>
+  本拡張機能は読み取り側で <code>node-html-parser</code> を使う。しかしこのライブラリは属性値内の <code>\X</code> 形式のバックスラッシュエスケープを<strong>黙って取り除いて</strong>返す挙動を持つ。<br>
+  そのため、JSON.stringify が生成した <code>\"</code> や <code>\\</code> を素のままで <code>data-mxgraph</code> 属性に書き戻すと、次の保存サイクルで読み出した時に <code>\"</code> が裸の <code>"</code> に化けて JSON が壊れる。実害として「保存して再度開いたら図が消える / <code>diagram-id ... was not found in the HTML.</code> エラーが出る」という症状になる。
+</div>
+
+<p>
+  <code>src/htmlPatcher.ts</code> の <code>replaceMxgraphDivXml</code> はこれを回避するため、書き戻し時に下記のエスケープを適用する：
+</p>
+
+<ul>
+  <li><code>&amp;</code> → <code>&amp;amp;</code></li>
+  <li><code>\</code> → <code>&amp;#92;</code></li>
+  <li>外側引用符（<code>'</code> または <code>"</code>）→ <code>&amp;#39;</code> または <code>&amp;quot;</code></li>
+</ul>
+
+<p>
+  対応する <code>decodeAttrValue</code> はこれらを逆変換する。これで <code>\"</code> や <code>\\</code> といった JSON エスケープシーケンスが <code>node-html-parser</code> を経由しても保持され、何度保存しても JSON が壊れない。
+</p>
+
+<p>
+  書き戻し処理は <code>node-html-parser</code> の <code>setAttribute</code> + <code>toString()</code> 経由ではなく、<strong>文字列レベルで属性値の範囲を特定して直接書き換える</strong>方式を採る。これは「読み取りは parser、書き戻しは文字列処理」という責務分離。なお壊れた JSON にも対応するためのフォールバック（最小構成の JSON で再構築）も入っているので、過去バージョンで壊れたファイルも次回保存時に修復される。
 </p>
 
 <h2>テーマ追従の仕組み</h2>

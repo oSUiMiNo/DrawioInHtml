@@ -3,6 +3,12 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.2] - 2026-05-22
+
+### Changed
+- Developer documentation (`README.dev.html`) updated to reflect the v0.6 two-marker spec: the file-layout table now describes `htmlPatcher.ts` as the two-path router (script-id + mxgraph-div), and the smoke-test instructions accept either marker form. A new section documents the v0.6.1 mxgraph-div writer hardening — why JSON backslash escapes must be HTML-entity-encoded on write and decoded on read to survive node-html-parser's `getAttribute` quirk.
+- No code changes; the extension binary is unchanged from v0.6.1.
+
 ## [0.6.1] - 2026-05-21
 
 ### Fixed
