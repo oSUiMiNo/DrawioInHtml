@@ -164,11 +164,13 @@
   Drawio エディタ機能を持つ既存 VSCode 拡張（hediet.vscode-drawio 等）には依存していない。本拡張機能は完全に独立。
 </p>
 
-<h2>対応マーカー仕様（v0.5+）</h2>
+<h2>対応マーカー仕様（v0.6+）</h2>
 
 <p>
-  v0.5 で拡張専用マーカーは廃止され、認識する形式は<strong>1種類のみ</strong>に統一された。
+  認識する形式は <strong>2 種類</strong>。
 </p>
+
+<h3>形式 A：script id 形式（v0.5 から継続）</h3>
 
 <pre><code>&lt;script type="application/xml" id="X"&gt;
 &lt;mxfile&gt;...&lt;/mxfile&gt;  &lt;!-- または &lt;mxGraphModel&gt;...&lt;/mxGraphModel&gt; --&gt;
@@ -180,9 +182,23 @@
   <li>中身が <code>&lt;mxfile&gt;</code> または <code>&lt;mxGraphModel&gt;</code> で始まる場合のみ Drawio として扱う（汎用 XML データを誤認しないため）</li>
 </ul>
 
+<h3>形式 B：mxgraph div 形式（v0.6 新規・Drawio 公式エクスポート）</h3>
+
+<pre><code>&lt;div class="mxgraph" data-mxgraph='{"highlight":"#0000ff","nav":true,"resize":true,"xml":"&lt;mxfile&gt;...&lt;/mxfile&gt;"}'&gt;&lt;/div&gt;
+&lt;script src="https://viewer.diagrams.net/js/viewer-static.min.js"&gt;&lt;/script&gt;</code></pre>
+
+<ul>
+  <li>Drawio の「Extras → Edit Diagram → Publish → HTML」または「Embed → HTML」が出力する公式フォーマットそのもの</li>
+  <li>XML はホスト div の <code>data-mxgraph</code> 属性内に JSON 文字列として埋め込まれる（<code>{"xml":"&lt;mxfile&gt;...","toolbar":...}</code>）</li>
+  <li>ブラウザでは viewer の auto-processElements がこの div を拾って描画する</li>
+  <li>本拡張機能で開くと、ホスト div を slot 置換 → 拡張描画＋編集ボタン</li>
+  <li>編集識別子は div の <code>id</code> 属性。<strong>なければ HTML 内の出現順で自動採番</strong>：<code>drawio-mxgraph-1</code>, <code>drawio-mxgraph-2</code>, …</li>
+  <li>保存時：拡張機能側で JSON の <code>xml</code> フィールドだけを書き換え、他のフィールド（toolbar、highlight 等）は保持する</li>
+</ul>
+
 <div class="callout warn">
-  <strong>v0.4 以前との非互換</strong>
-  <code>data-drawio-id</code>（v0.3+ で導入した拡張専用属性）や <code>type="application/drawio+xml"</code>（v0.2.x の旧形式）は<strong>認識されません</strong>。これらを使った既存 HTML は <code>id</code> 属性形式に書き換えてください。XML 中身（<code>&lt;mxfile&gt;...</code>）は変更不要。
+  <strong>v0.4 以前との非互換（v0.5 で導入済み）</strong>
+  <code>data-drawio-id</code>（v0.3+ で導入した拡張専用属性）や <code>type="application/drawio+xml"</code>（v0.2.x の旧形式）は<strong>認識されません</strong>。これらを使った既存 HTML は形式 A の <code>id</code> 属性形式に書き換えてください。XML 中身（<code>&lt;mxfile&gt;...</code>）は変更不要。
 </div>
 
 <h3>ブラウザでも描画する自前マウント</h3>

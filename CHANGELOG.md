@@ -3,6 +3,18 @@
 All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.0] - 2026-05-21
+
+### Added
+- **Recognize Drawio's official `<div class="mxgraph" data-mxgraph='{"xml":"<mxfile>..."}'>` export format** (what "Extras → Edit Diagram → Publish → HTML" or "Embed → HTML" emit). HTML files produced directly by Drawio can now be opened in this extension and edited without any markup changes. The XML lives as a JSON string inside the host div's `data-mxgraph` attribute; the extension parses it, swaps just the `xml` field on save, and preserves the other JSON fields (toolbar, highlight, etc.) intact.
+- Identifier for the new form is the div's `id` attribute. When the div has no `id`, the extension auto-assigns `drawio-mxgraph-1`, `drawio-mxgraph-2`, … in document order, so the official Drawio output (which typically omits `id`) works out of the box.
+
+### Changed
+- `extractDrawioBlocks` returns a new `source: 'script-id' | 'mxgraph-div'` field on each block so `replaceDrawioXml` can dispatch to the correct writer. The Form 1 (`<script type="application/xml" id="X">`) recognized in v0.5 continues to work exactly as before.
+
+### Internal
+- The save-side writer for the new form uses string-level rewriting rather than node-html-parser's `setAttribute` + `toString()` round-trip, because the parser drops backslash escapes inside attribute values and corrupts the embedded JSON. Read-side parsing still uses node-html-parser as before.
+
 ## [0.5.4] - 2026-05-19
 
 ### Fixed

@@ -42,7 +42,9 @@ code --install-extension Maku.drawio-in-html
 
 ## How to embed a diagram in HTML
 
-Put a block like this inside your HTML — the diagram is rendered in place:
+The extension recognizes **two embed formats** — use whichever suits you.
+
+### A. Simple form (script tag with id)
 
 ```html
 <script type="application/xml" id="my-diagram">
@@ -58,13 +60,24 @@ Put a block like this inside your HTML — the diagram is rendered in place:
 </script>
 ```
 
-Notes:
-
+- Plain HTML5 inline-data-block usage — browsers ignore it, so no side effects
 - The `id` value (`"my-diagram"` above) must be unique within the HTML file
-- The body can be either `<mxGraphModel>...</mxGraphModel>` or `<mxfile>...</mxfile>` — both are valid Drawio XML
-- The easiest workflow is to drop an empty `<script>` tag with an arbitrary `id` and start drawing from ✏️
+- Body can be either `<mxGraphModel>...</mxGraphModel>` or `<mxfile>...</mxfile>`
+- Easiest workflow: drop an empty `<script>` with an arbitrary `id` and start drawing from ✏️
+- To render in a plain browser too, add a mount script that reads the same `id` — see [developer docs](./README.dev.html) (Japanese)
 
-The marker is just the standard HTML5 inline-data-block usage, so browsers safely ignore it and it coexists with other content without side effects. **If you want the diagram to render in a plain browser as well**, add a small mount script that reads the same `id` — see the [developer documentation](./README.dev.html) (Japanese) for a working example.
+### B. Drawio's official export form (mxgraph div)
+
+```html
+<div class="mxgraph" data-mxgraph='{"highlight":"#0000ff","nav":true,"resize":true,"xml":"<mxfile>...</mxfile>"}'></div>
+<script src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+```
+
+- This is exactly what Drawio's "Extras → Edit Diagram → Publish → HTML" (or "Embed → HTML") emits
+- The XML lives as a JSON string inside the host div's `data-mxgraph` attribute
+- **Renders in both a plain browser and this extension with no edits at all**
+- Identifier is the div's `id` attribute. If absent, the extension auto-assigns `drawio-mxgraph-1`, `drawio-mxgraph-2`, ... in document order
+- Lets you take a Drawio-published HTML straight into VSCode for editing
 
 ## Usage
 
