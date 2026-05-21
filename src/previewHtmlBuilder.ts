@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
 import { parse, HTMLElement } from 'node-html-parser';
 
-// v0.5+ marker: standard <script type="application/xml" id="X"> whose body
+// Form 1 (v0.5+): standard <script type="application/xml" id="X"> whose body
 // starts with <mxfile> or <mxGraphModel>. Browser-portable and HTML5 standard.
 const MARKER_TYPE = 'application/xml';
+// Form 2 (v0.6+): Drawio's official <div class="mxgraph" data-mxgraph='{...,"xml":"..."}'>.
+// Auto-assigned id prefix for divs without an explicit id attribute.
+const AUTO_ID_PREFIX = 'drawio-mxgraph-';
 
 export interface BuildOptions {
   rawHtml: string;
@@ -136,14 +139,15 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
   rewriteRelativeUrl(root, 'audio', 'src', documentDir, webview);
   rewriteRelativeUrl(root, 'iframe', 'src', documentDir, webview);
 
-  // Replace Drawio <script> tags with slot divs.
-  // Recognized pattern (v0.5+, the only one):
-  //   <script type="application/xml" id="X"> with body starting with <mxfile> or <mxGraphModel>
+  // Replace Drawio nodes with slot divs. Two recognized forms (v0.6+):
+  //   1. <script type="application/xml" id="X"> with body starting with <mxfile>/<mxGraphModel>
+  //   2. <div class="mxgraph" data-mxgraph='{"xml":"<mxfile>..."}'> (Drawio official export)
   // Replacement: <div class="drawio-slot" data-diagram-id="X"></div>
   // (The slot's data-diagram-id attribute is the internal key used by preview.js
   //  and editorPanelManager; it does not need to match the user's authoring style.)
   const diagramIds: string[] = [];
 
+  // Form 1: script[type=application/xml][id]
   for (const scriptEl of Array.from(root.querySelectorAll(`script[type="${MARKER_TYPE}"]`))) {
     const idAttr = scriptEl.getAttribute('id');
     if (!idAttr) continue;
@@ -153,6 +157,29 @@ export function buildPreviewHtml(opts: BuildOptions): BuildResult {
     diagramIds.push(idAttr);
     const slotHtml = `<div class="drawio-slot" data-diagram-id="${escapeAttr(idAttr)}"></div>`;
     scriptEl.replaceWith(slotHtml);
+  }
+
+  // Form 2: div.mxgraph[data-mxgraph] (Drawio official Publish → HTML format)
+  // The id is the div's id attribute if present, otherwise a 1-based auto name.
+  let mxgraphDivIndex = 0;
+  for (const divEl of Array.from(root.querySelectorAll('div.mxgraph[data-mxgraph]'))) {
+    mxgraphDivIndex += 1;
+    const raw = divEl.getAttribute('data-mxgraph');
+    if (!raw) continue;
+    let xml: string;
+    try {
+      const obj = JSON.parse(raw);
+      if (!obj || typeof obj !== 'object' || typeof (obj as { xml?: unknown }).xml !== 'string') continue;
+      xml = (obj as { xml: string }).xml;
+    } catch {
+      continue;
+    }
+    if (!isDrawioXmlSnippet(xml)) continue;
+
+    const diagramId = divEl.getAttribute('id') ?? `${AUTO_ID_PREFIX}${mxgraphDivIndex}`;
+    diagramIds.push(diagramId);
+    const slotHtml = `<div class="drawio-slot" data-diagram-id="${escapeAttr(diagramId)}"></div>`;
+    divEl.replaceWith(slotHtml);
   }
 
   // Hide the user's own render hosts (<div class="mxgraph">, <div class="drawio-host">).
